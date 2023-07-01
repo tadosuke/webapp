@@ -1,21 +1,28 @@
+<!-- HTMLドキュメントの開始 -->
 <!DOCTYPE html>
 <html>
 <head>
+    <!-- 文字コードの指定 -->
     <meta charset="UTF-8">
+    <!-- ウェブページのタイトル -->
     <title>Frequency Spectrum Display</title>
 </head>
 <body>
+    <!-- グラフを描画するためのキャンバス要素 -->
     <canvas id="spectrum" width="400" height="200"></canvas>
     <script>
+    // 音のピッチをチェックするクラス
     class PitchChecker {
         constructor() {
-            // no constructor properties needed at this time
+            // 今回はコンストラクタにプロパティは不要
         }
 
+        // 周波数をMIDIノート番号に変換するメソッド
         frequencyToNoteNumber(frequency) {
             return 12 * (Math.log(frequency / 440) / Math.log(2)) + 69;
         }
 
+        // MIDIノート番号を音名（A-Gの各音階）に変換するメソッド
         noteNumberToName(noteNumber) {
             const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
             const octave = Math.floor(noteNumber / 12);
@@ -23,11 +30,13 @@
             return noteName + octave;
         }
 
+        // 周波数を音名に変換するメソッド
         frequencyToNoteName(frequency) {
             const noteNumber = this.frequencyToNoteNumber(frequency);
             return this.noteNumberToName(Math.round(noteNumber));
         }
 
+        // 音量を計算するメソッド
         calculateVolume(dataArray, bufferLength) {
             let sum = 0;
             let maxIndex = 0;
@@ -43,6 +52,7 @@
         }
     }
 
+    // 音を視覚化するクラス
     class AudioVisualizer {
         constructor(dataArray, canvas) {
             this.dataArray = dataArray;
@@ -51,6 +61,7 @@
             this.bufferLength = this.dataArray.length;
         }
 
+        // 描画を更新するメソッド
         update() {
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             for(let i = 0; i < this.bufferLength; i++) {
@@ -58,13 +69,16 @@
                 this.context.fillRect(i * this.canvas.width / this.bufferLength, this.canvas.height, this.canvas.width / this.bufferLength, -(this.dataArray[i] / 255) * this.canvas.height);
             }
 
+            // 描画を継続的に更新するためにrequestAnimationFrameを使う
             requestAnimationFrame(() => this.update());
         }
     }
 
+    // ページが読み込まれたら以下の処理を開始
     window.onload = function() {
         const pitchChecker = new PitchChecker();
 
+        // ユーザーのマイクからの音声データにアクセス
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 const context = new (window.AudioContext || window.webkitAudioContext)();
@@ -89,6 +103,7 @@
                 update();
             })
             .catch(err => {
+                // マイクへのアクセスが拒否された場合のエラーメッセージ
                 console.error('マイクへのアクセスが許可されていません。ブラウザの設定を確認して、マイクへのアクセスを許可してください。エラー詳細:', err);
             });
     };
