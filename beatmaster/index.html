@@ -6,116 +6,134 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <div class="app">
-    <p>BPM: <span id="bpmDisplay">120</span></p>
-    <input type="range" id="bpmSlider" min="60" max="240" value="120" oninput="updateBPM()">
-        
-    <button onclick="startTimer()">Start</button>
-    <button onclick="stopTimer()">Stop</button>
-    <button id="backButton">裏</button>
-  </div>
+  <div id="app" class="app"></div>
 
   <script>
-  // サウンド再生を担当するクラス
-  class SoundPlayer {
-    constructor(src) {
-      this.audio = new Audio(src);
-      this.audio.preload = 'auto';
-    }
-
-    // サウンドを再生する
-    play() {
-      this.audio.currentTime = 0;
-      this.audio.play();
-    }
-  }
-
-  // タイマーを管理するクラス
-  class Timer {
-    constructor(bpm, soundPlayer) {
-      this.bpm = bpm;
-      this.soundPlayer = soundPlayer;
-      this.interval = null;
-      this.isPlaying = false;
-    }
-
-    // 1拍あたりの間隔を計算する
-    calculateInterval() {
-      var millisecondsPerBeat = (60 / this.bpm) * 1000;
-      return millisecondsPerBeat;
-    }
-
-    // タイマーを開始する
-    start() {
-      if (this.isPlaying) {
-        return;
+    class SoundPlayer {
+      constructor(src) {
+        this.audio = new Audio(src);
+        this.audio.preload = 'auto';
       }
-      var intervalDuration = this.calculateInterval();
-      this.interval = setInterval(() => {
-        this.soundPlayer.play();
-      }, intervalDuration);
 
-      this.isPlaying = true;
+      play() {
+        this.audio.currentTime = 0;
+        this.audio.play();
+      }
     }
 
-    // タイマーを停止する
-    stop() {
-      clearInterval(this.interval);
-      this.interval = null;
-      this.isPlaying = false;
-    }
-
-    // BPMを更新してタイマーを再設定する
-    updateBPM(newBPM) {
-      this.bpm = newBPM;
-      if (this.interval) {
-        clearInterval(this.interval);
+    class Timer {
+      constructor(bpm, soundPlayer) {
+        this.bpm = bpm;
+        this.soundPlayer = soundPlayer;
+        this.interval = null;
         this.isPlaying = false;
-        this.start();
-      } else {
-        this.start();
+      }
+
+      calculateInterval() {
+        var millisecondsPerBeat = (60 / this.bpm) * 1000;
+        return millisecondsPerBeat;
+      }
+
+      start() {
+        if (this.isPlaying) {
+          return;
+        }
+        var intervalDuration = this.calculateInterval();
+        this.interval = setInterval(() => {
+          this.soundPlayer.play();
+        }, intervalDuration);
+
+        this.isPlaying = true;
+      }
+
+      stop() {
+        clearInterval(this.interval);
+        this.interval = null;
+        this.isPlaying = false;
+      }
+
+      updateBPM(newBPM) {
+        this.bpm = newBPM;
+        if (this.interval) {
+          clearInterval(this.interval);
+          this.isPlaying = false;
+          this.start();
+        } else {
+          this.start();
+        }
       }
     }
-  }
 
-  var bpm = 120;
-  var clickSound = new SoundPlayer('click_sound.mp3');
-  var backSound = new SoundPlayer('back_sound.mp3');
-  var timer = new Timer(bpm, clickSound);
+    var bpm = 120;
+    var clickSound = new SoundPlayer('click_sound.mp3');
+    var backSound = new SoundPlayer('back_sound.mp3');
+    var timer = new Timer(bpm, clickSound);
 
-  // Startボタンがクリックされたときの処理
-  function startTimer() {
-    timer.start(); // タイマーを開始する
-  }
+    function createUI() {
+      var appDiv = document.getElementById('app');
 
-  // Stopボタンがクリックされたときの処理
-  function stopTimer() {
-    timer.stop(); // タイマーを停止する
-  }
+      var bpmDisplay = document.createElement('span');
+      bpmDisplay.id = 'bpmDisplay';
+      bpmDisplay.textContent = bpm;
+      var bpmLabel = document.createElement('p');
+      bpmLabel.textContent = 'BPM: ';
+      bpmLabel.appendChild(bpmDisplay);
 
-  // BPMスライダーの値が変更されたときの処理
-  function updateBPM() {
-    var slider = document.getElementById('bpmSlider');
-    var display = document.getElementById('bpmDisplay');
-    bpm = parseInt(slider.value);
-    display.textContent = bpm;
-    timer.updateBPM(bpm); // タイマーのBPMを更新する
-  }
+      var bpmSlider = document.createElement('input');
+      bpmSlider.type = 'range';
+      bpmSlider.id = 'bpmSlider';
+      bpmSlider.min = '60';
+      bpmSlider.max = '240';
+      bpmSlider.value = bpm;
+      bpmSlider.addEventListener('input', updateBPM);
 
-  // 裏ボタンがマウスでクリックされたときの処理
-  var backButton = document.getElementById('backButton');
-  backButton.addEventListener('mousedown', function() {
-    backSound.play(); // 裏拍の音を再生する
-  });
+      var startButton = document.createElement('button');
+      startButton.textContent = 'Start';
+      startButton.addEventListener('click', startTimer);
 
-  // キーボードのキー押下イベントを処理する関数
-  function handleKeyDown(event) {
-    if (event.keyCode === 32) {
-      backSound.play(); // スペースキーが押されたときに裏拍の音を再生する
+      var stopButton = document.createElement('button');
+      stopButton.textContent = 'Stop';
+      stopButton.addEventListener('click', stopTimer);
+
+      var backButton = document.createElement('button');
+      backButton.id = 'backButton';
+      backButton.textContent = '裏';
+      backButton.addEventListener('mousedown', function() {
+        backSound.play();
+      });
+
+      appDiv.appendChild(bpmLabel);
+      appDiv.appendChild(bpmSlider);
+      appDiv.appendChild(startButton);
+      appDiv.appendChild(stopButton);
+      appDiv.appendChild(backButton);
     }
-  }
 
-  document.addEventListener('keydown', handleKeyDown);
+    createUI();
+
+    function updateBPM() {
+      var slider = document.getElementById('bpmSlider');
+      var display = document.getElementById('bpmDisplay');
+      bpm = parseInt(slider.value);
+      display.textContent = bpm;
+      timer.updateBPM(bpm);
+    }
+
+    function startTimer() {
+      timer.start();
+    }
+
+    function stopTimer() {
+      timer.stop();
+    }
+
+    function handleKeyDown(event) {
+      if (event.keyCode === 32) {
+        backSound.play();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
   </script>
 </body>
 </html>
