@@ -16,74 +16,94 @@
   </div>
 
   <script>
-    class SoundPlayer {
-      constructor(src) {
-        this.audio = new Audio(src);
-        this.audio.preload = 'auto';
-      }
-
-      play() {
-        this.audio.currentTime = 0;
-        this.audio.play();
-      }
+  class SoundPlayer {
+    constructor(src) {
+      this.audio = new Audio(src);
+      this.audio.preload = 'auto';
     }
 
-    var bpm = 120;
-    var interval;
-    var clickSound = new SoundPlayer('click_sound.mp3');
-    var backSound = new SoundPlayer('back_sound.mp3');
-    var isPlaying = false;
+    play() {
+      this.audio.currentTime = 0;
+      this.audio.play();
+    }
+  }
 
-    function calculateInterval() {
-      var millisecondsPerBeat = (60 / bpm) * 1000;
+  class Timer {
+    constructor(bpm, soundPlayer) {
+      this.bpm = bpm;
+      this.soundPlayer = soundPlayer;
+      this.interval = null;
+      this.isPlaying = false;
+    }
+
+    calculateInterval() {
+      var millisecondsPerBeat = (60 / this.bpm) * 1000;
       return millisecondsPerBeat;
     }
 
-    function startTimer() {
-      if (isPlaying) {
+    start() {
+      if (this.isPlaying) {
         return;
       }
-      var intervalDuration = calculateInterval();
-      interval = setInterval(function() {
-        clickSound.play();
+      var intervalDuration = this.calculateInterval();
+      this.interval = setInterval(() => {
+        this.soundPlayer.play();
       }, intervalDuration);
 
-      isPlaying = true;
+      this.isPlaying = true;
     }
 
-    function stopTimer() {
-      clearInterval(interval);
-      interval = null;
-      isPlaying = false;
+    stop() {
+      clearInterval(this.interval);
+      this.interval = null;
+      this.isPlaying = false;
     }
 
-    function updateBPM() {
-      var slider = document.getElementById('bpmSlider');
-      var display = document.getElementById('bpmDisplay');
-      bpm = parseInt(slider.value);
-      display.textContent = bpm;
-      if (interval) {
-        clearInterval(interval);
-        isPlaying = false;
-        startTimer();
+    updateBPM(newBPM) {
+      this.bpm = newBPM;
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.isPlaying = false;
+        this.start();
       } else {
-        startTimer();
+        this.start();
       }
     }
+  }
 
-    var backButton = document.getElementById('backButton');
-    backButton.addEventListener('mousedown', function() {
+  var bpm = 120;
+  var clickSound = new SoundPlayer('click_sound.mp3');
+  var backSound = new SoundPlayer('back_sound.mp3');
+  var timer = new Timer(bpm, clickSound);
+
+  function startTimer() {
+    timer.start();
+  }
+
+  function stopTimer() {
+    timer.stop();
+  }
+
+  function updateBPM() {
+    var slider = document.getElementById('bpmSlider');
+    var display = document.getElementById('bpmDisplay');
+    bpm = parseInt(slider.value);
+    display.textContent = bpm;
+    timer.updateBPM(bpm);
+  }
+
+  var backButton = document.getElementById('backButton');
+  backButton.addEventListener('mousedown', function() {
+    backSound.play();
+  });
+
+  function handleKeyDown(event) {
+    if (event.keyCode === 32) {
       backSound.play();
-    });
-
-    function handleKeyDown(event) {
-      if (event.keyCode === 32) {
-        backSound.play();
-      }
     }
+  }
 
-    document.addEventListener('keydown', handleKeyDown);
+  document.addEventListener('keydown', handleKeyDown);
   </script>
-
 </body>
 </html>
