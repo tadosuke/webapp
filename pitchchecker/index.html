@@ -26,6 +26,20 @@
             return noteNumberToName(Math.round(noteNumber));
         }
 
+        function calculateVolume(dataArray, bufferLength) {
+            let sum = 0;
+            let maxIndex = 0;
+            for(let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i] * dataArray[i];
+                if(dataArray[i] > dataArray[maxIndex]) {
+                    maxIndex = i;
+                }
+            }
+
+            const rms = Math.sqrt(sum / bufferLength);
+            return { volume: Math.min((rms / 255) * 200, 100), maxIndex: maxIndex };  // 2倍の感度、ただし上限は100
+        }
+
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 const context = new (window.AudioContext || window.webkitAudioContext)();
@@ -43,18 +57,8 @@
 
                 const update = () => {
                     analyser.getByteFrequencyData(dataArray);
-
-                    let sum = 0;
-                    let maxIndex = 0;
-                    for(let i = 0; i < bufferLength; i++) {
-                        sum += dataArray[i];
-                        if(dataArray[i] > dataArray[maxIndex]) {
-                            maxIndex = i;
-                        }
-                    }
-
-                    const avg = sum / bufferLength;
-                    volumeDisplay.value = (avg / 255) * 100; // Adjust for progress bar
+                    const { volume, maxIndex } = calculateVolume(dataArray, bufferLength);
+                    volumeDisplay.value = volume;
 
                     const dominantFrequency = maxIndex * context.sampleRate / analyser.fftSize;
                     frequencyDisplay.textContent = dominantFrequency.toFixed(2);
@@ -67,7 +71,7 @@
                 update();
             })
             .catch(err => {
-                console.error('マイクのアクセス許可が必要です:', err);
+                console.error('マイクへのアクセスが許可されていません。ブラウザの設定を確認して、マイクへのアクセスを許可してください。エラー詳細:', err);
             });
     };
     </script>
