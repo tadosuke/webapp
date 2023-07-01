@@ -84,16 +84,14 @@
         playSound(backSound); // 裏拍の音を再生
     });
 
-    // スペースキーの押下イベントを処理する関数
-    function handleKeyPress(event) {
-      if (event.keyCode === 32) { // スペースキーコード（32）をチェック
-        playSound(backSound); // 裏拍の音を再生
+    function handleKeyDown(event) {
+      if (event.keyCode === 32) {
+        playSound(backSound);
       }
     }
 
-    // キーボードのキー押下イベントを監視
-    document.addEventListener('keydown', handleKeyPress);
-
+    // キーボードのキーを押した瞬間のイベントを監視
+    document.addEventListener('keydown', handleKeyDown);
   </script>
 </body>
 </html>
