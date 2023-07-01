@@ -66,8 +66,9 @@
         update() {
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             for(let i = 0; i < this.bufferLength; i++) {
+                const x = Math.log(i + 1) / Math.log(this.bufferLength) * this.canvas.width; // 対数スケールのX座標
                 this.context.fillStyle = `hsl(${i / this.bufferLength * 300}, 100%, 50%)`;
-                this.context.fillRect(i * this.canvas.width / this.bufferLength, this.canvas.height, this.canvas.width / this.bufferLength, -(this.dataArray[i] / 255) * this.canvas.height);
+                this.context.fillRect(x, this.canvas.height, (Math.log(i + 2) - Math.log(i + 1)) / Math.log(this.bufferLength) * this.canvas.width, -(this.dataArray[i] / 255) * this.canvas.height); // 横幅も対数スケールに合わせて調整
             }
         }
     }
