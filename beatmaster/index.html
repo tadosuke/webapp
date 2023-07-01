@@ -16,18 +16,21 @@
   </div>
 
   <script>
+  // サウンド再生を担当するクラス
   class SoundPlayer {
     constructor(src) {
       this.audio = new Audio(src);
       this.audio.preload = 'auto';
     }
 
+    // サウンドを再生する
     play() {
       this.audio.currentTime = 0;
       this.audio.play();
     }
   }
 
+  // タイマーを管理するクラス
   class Timer {
     constructor(bpm, soundPlayer) {
       this.bpm = bpm;
@@ -36,11 +39,13 @@
       this.isPlaying = false;
     }
 
+    // 1拍あたりの間隔を計算する
     calculateInterval() {
       var millisecondsPerBeat = (60 / this.bpm) * 1000;
       return millisecondsPerBeat;
     }
 
+    // タイマーを開始する
     start() {
       if (this.isPlaying) {
         return;
@@ -53,12 +58,14 @@
       this.isPlaying = true;
     }
 
+    // タイマーを停止する
     stop() {
       clearInterval(this.interval);
       this.interval = null;
       this.isPlaying = false;
     }
 
+    // BPMを更新してタイマーを再設定する
     updateBPM(newBPM) {
       this.bpm = newBPM;
       if (this.interval) {
@@ -76,30 +83,35 @@
   var backSound = new SoundPlayer('back_sound.mp3');
   var timer = new Timer(bpm, clickSound);
 
+  // Startボタンがクリックされたときの処理
   function startTimer() {
-    timer.start();
+    timer.start(); // タイマーを開始する
   }
 
+  // Stopボタンがクリックされたときの処理
   function stopTimer() {
-    timer.stop();
+    timer.stop(); // タイマーを停止する
   }
 
+  // BPMスライダーの値が変更されたときの処理
   function updateBPM() {
     var slider = document.getElementById('bpmSlider');
     var display = document.getElementById('bpmDisplay');
     bpm = parseInt(slider.value);
     display.textContent = bpm;
-    timer.updateBPM(bpm);
+    timer.updateBPM(bpm); // タイマーのBPMを更新する
   }
 
+  // 裏ボタンがマウスでクリックされたときの処理
   var backButton = document.getElementById('backButton');
   backButton.addEventListener('mousedown', function() {
-    backSound.play();
+    backSound.play(); // 裏拍の音を再生する
   });
 
+  // キーボードのキー押下イベントを処理する関数
   function handleKeyDown(event) {
     if (event.keyCode === 32) {
-      backSound.play();
+      backSound.play(); // スペースキーが押されたときに裏拍の音を再生する
     }
   }
 
