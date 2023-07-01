@@ -10,6 +10,7 @@
 <body>
     <!-- グラフを描画するためのキャンバス要素 -->
     <canvas id="spectrum" width="400" height="200"></canvas>
+    <div id="frequency-ranges"></div> <!-- 帯域を表示するための要素 -->
     <script>
     // 音のピッチをチェックするクラス
     class PitchChecker {
@@ -68,15 +69,14 @@
                 this.context.fillStyle = `hsl(${i / this.bufferLength * 300}, 100%, 50%)`;
                 this.context.fillRect(i * this.canvas.width / this.bufferLength, this.canvas.height, this.canvas.width / this.bufferLength, -(this.dataArray[i] / 255) * this.canvas.height);
             }
-
-            // 描画を継続的に更新するためにrequestAnimationFrameを使う
-            requestAnimationFrame(() => this.update());
         }
     }
 
     // ページが読み込まれたら以下の処理を開始
     window.onload = function() {
+        let frameCount = 0; // 追加： フレームカウンタの初期化
         const pitchChecker = new PitchChecker();
+        const rangesElement = document.getElementById('frequency-ranges'); // 追加： 帯域を表示する要素を取得
 
         // ユーザーのマイクからの音声データにアクセス
         navigator.mediaDevices.getUserMedia({ audio: true })
@@ -95,8 +95,15 @@
                 const visualizer = new AudioVisualizer(dataArray, spectrumCanvas);
 
                 const update = () => {
-                    analyser.getByteFrequencyData(dataArray);
-                    visualizer.update();
+                    frameCount++; // 追加： フレームカウンタを増加
+                    if (frameCount % 2 === 0) { // 追加： フレームカウンタが2の倍数の時だけ描画を更新
+                        analyser.getByteFrequencyData(dataArray);
+                        const maxIndex = pitchChecker.calculateVolume(dataArray, bufferLength).maxIndex; // 追加： 最大音量のインデックスを取得
+                        const frequency = maxIndex * context.sampleRate / (2 * bufferLength); // 追加： 最大音量の周波数を計算
+                        rangesElement.innerText = `Frequency: ${Math.round(frequency)} Hz`; // 追加： 周波数を表示
+
+                        visualizer.update();
+                    }
                     requestAnimationFrame(update);
                 };
 
