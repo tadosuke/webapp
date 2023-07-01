@@ -9,18 +9,21 @@
   <div id="app" class="app"></div>
 
   <script>
+    // サウンド再生を担当するクラス
     class SoundPlayer {
       constructor(src) {
         this.audio = new Audio(src);
         this.audio.preload = 'auto';
       }
 
+      // サウンドを再生する
       play() {
         this.audio.currentTime = 0;
         this.audio.play();
       }
     }
 
+    // タイマーを管理するクラス
     class Timer {
       constructor(bpm, soundPlayer) {
         this.bpm = bpm;
@@ -29,11 +32,13 @@
         this.isPlaying = false;
       }
 
+      // 1拍あたりの間隔を計算する
       calculateInterval() {
         var millisecondsPerBeat = (60 / this.bpm) * 1000;
         return millisecondsPerBeat;
       }
 
+      // タイマーを開始する
       start() {
         if (this.isPlaying) {
           return;
@@ -46,12 +51,14 @@
         this.isPlaying = true;
       }
 
+      // タイマーを停止する
       stop() {
         clearInterval(this.interval);
         this.interval = null;
         this.isPlaying = false;
       }
 
+      // BPMを更新してタイマーを再設定する
       updateBPM(newBPM) {
         this.bpm = newBPM;
         if (this.interval) {
@@ -64,76 +71,101 @@
       }
     }
 
-    var bpm = 120;
-    var clickSound = new SoundPlayer('click_sound.mp3');
-    var backSound = new SoundPlayer('back_sound.mp3');
-    var timer = new Timer(bpm, clickSound);
+    // クリック音アプリを管理するクラス
+    class ClickSoundApp {
+      constructor() {
+        this.bpm = 120;
+        this.clickSound = new SoundPlayer('click_sound.mp3');
+        this.backSound = new SoundPlayer('back_sound.mp3');
+        this.timer = new Timer(this.bpm, this.clickSound);
+      }
 
-    function createUI() {
-      var appDiv = document.getElementById('app');
+      // UIを生成する
+      createUI() {
+        var appDiv = document.getElementById('app');
 
-      var bpmDisplay = document.createElement('span');
-      bpmDisplay.id = 'bpmDisplay';
-      bpmDisplay.textContent = bpm;
-      var bpmLabel = document.createElement('p');
-      bpmLabel.textContent = 'BPM: ';
-      bpmLabel.appendChild(bpmDisplay);
+        // BPM表示の要素
+        var bpmDisplay = document.createElement('span');
+        bpmDisplay.id = 'bpmDisplay';
+        bpmDisplay.textContent = this.bpm;
+        var bpmLabel = document.createElement('p');
+        bpmLabel.textContent = 'BPM: ';
+        bpmLabel.appendChild(bpmDisplay);
 
-      var bpmSlider = document.createElement('input');
-      bpmSlider.type = 'range';
-      bpmSlider.id = 'bpmSlider';
-      bpmSlider.min = '60';
-      bpmSlider.max = '240';
-      bpmSlider.value = bpm;
-      bpmSlider.addEventListener('input', updateBPM);
+        // BPMスライダーの要素
+        var bpmSlider = document.createElement('input');
+        bpmSlider.type = 'range';
+        bpmSlider.id = 'bpmSlider';
+        bpmSlider.min = '60';
+        bpmSlider.max = '240';
+        bpmSlider.value = this.bpm;
+        bpmSlider.addEventListener('input', () => this.updateBPM());
 
-      var startButton = document.createElement('button');
-      startButton.textContent = 'Start';
-      startButton.addEventListener('click', startTimer);
+        // Startボタンの要素
+        var startButton = document.createElement('button');
+        startButton.textContent = 'Start';
+        startButton.addEventListener('click', () => this.startTimer());
 
-      var stopButton = document.createElement('button');
-      stopButton.textContent = 'Stop';
-      stopButton.addEventListener('click', stopTimer);
+        // Stopボタンの要素
+        var stopButton = document.createElement('button');
+        stopButton.textContent = 'Stop';
+        stopButton.addEventListener('click', () => this.stopTimer());
 
-      var backButton = document.createElement('button');
-      backButton.id = 'backButton';
-      backButton.textContent = '裏';
-      backButton.addEventListener('mousedown', function() {
-        backSound.play();
-      });
+        // 裏ボタンの要素
+        var backButton = document.createElement('button');
+        backButton.id = 'backButton';
+        backButton.textContent = '裏';
+        backButton.addEventListener('mousedown', () => this.playBackSound());
 
-      appDiv.appendChild(bpmLabel);
-      appDiv.appendChild(bpmSlider);
-      appDiv.appendChild(startButton);
-      appDiv.appendChild(stopButton);
-      appDiv.appendChild(backButton);
-    }
+        // 生成した要素をappDivに追加する
+        appDiv.appendChild(bpmLabel);
+        appDiv.appendChild(bpmSlider);
+        appDiv.appendChild(startButton);
+        appDiv.appendChild(stopButton);
+        appDiv.appendChild(backButton);
+      }
 
-    createUI();
+      // BPMを更新する
+      updateBPM() {
+        var slider = document.getElementById('bpmSlider');
+        var display = document.getElementById('bpmDisplay');
+        this.bpm = parseInt(slider.value);
+        display.textContent = this.bpm;
+        this.timer.updateBPM(this.bpm);
+      }
 
-    function updateBPM() {
-      var slider = document.getElementById('bpmSlider');
-      var display = document.getElementById('bpmDisplay');
-      bpm = parseInt(slider.value);
-      display.textContent = bpm;
-      timer.updateBPM(bpm);
-    }
+      // タイマーを開始する
+      startTimer() {
+        this.timer.start();
+      }
 
-    function startTimer() {
-      timer.start();
-    }
+      // タイマーを停止する
+      stopTimer() {
+        this.timer.stop();
+      }
 
-    function stopTimer() {
-      timer.stop();
-    }
+      // 裏拍の音を再生する
+      playBackSound() {
+        this.backSound.play();
+      }
 
-    function handleKeyDown(event) {
-      if (event.keyCode === 32) {
-        backSound.play();
+      // キーボードのキー押下イベントを処理する関数
+      handleKeyDown(event) {
+        if (event.keyCode === 32) {
+          this.playBackSound();
+        }
+      }
+
+      // アプリケーションを初期化する
+      initialize() {
+        this.createUI();
+        document.addEventListener('keydown', (event) => this.handleKeyDown(event));
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown);
+    // ClickSoundAppクラスのインスタンスを作成し、初期化する
+    var app = new ClickSoundApp();
+    app.initialize();
   </script>
 </body>
 </html>
