@@ -114,6 +114,11 @@
         backButton.textContent = '裏';
         backButton.addEventListener('mousedown', () => this.clickSoundApp.playBackSound());
 
+        // ボタンにマージンを追加
+        startButton.style.margin = '3px';
+        stopButton.style.margin = '3px';
+        backButton.style.margin = '3px';
+
         // 生成した要素をappDivに追加する
         appDiv.appendChild(bpmLabel);
         appDiv.appendChild(bpmSlider);
