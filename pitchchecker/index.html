@@ -9,24 +9,28 @@
     <p>周波数：<span id="frequency">0</span> Hz</p>
     <p>ピッチ：<span id="pitch">A4</span></p>
     <script>
-    window.onload = function() {
-        function frequencyToNoteNumber(frequency) {
+    class PitchChecker {
+        constructor() {
+            // no constructor properties needed at this time
+        }
+
+        frequencyToNoteNumber(frequency) {
             return 12 * (Math.log(frequency / 440) / Math.log(2)) + 69;
         }
 
-        function noteNumberToName(noteNumber) {
+        noteNumberToName(noteNumber) {
             const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
             const octave = Math.floor(noteNumber / 12);
             const noteName = noteNames[noteNumber % 12];
             return noteName + octave;
         }
 
-        function frequencyToNoteName(frequency) {
-            const noteNumber = frequencyToNoteNumber(frequency);
-            return noteNumberToName(Math.round(noteNumber));
+        frequencyToNoteName(frequency) {
+            const noteNumber = this.frequencyToNoteNumber(frequency);
+            return this.noteNumberToName(Math.round(noteNumber));
         }
 
-        function calculateVolume(dataArray, bufferLength) {
+        calculateVolume(dataArray, bufferLength) {
             let sum = 0;
             let maxIndex = 0;
             for(let i = 0; i < bufferLength; i++) {
@@ -39,6 +43,10 @@
             const rms = Math.sqrt(sum / bufferLength);
             return { volume: Math.min((rms / 255) * 200, 100), maxIndex: maxIndex };  // 2倍の感度、ただし上限は100
         }
+    }
+
+    window.onload = function() {
+        const pitchChecker = new PitchChecker();
 
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
@@ -57,13 +65,13 @@
 
                 const update = () => {
                     analyser.getByteFrequencyData(dataArray);
-                    const { volume, maxIndex } = calculateVolume(dataArray, bufferLength);
+                    const { volume, maxIndex } = pitchChecker.calculateVolume(dataArray, bufferLength);
                     volumeDisplay.value = volume;
 
                     const dominantFrequency = maxIndex * context.sampleRate / analyser.fftSize;
                     frequencyDisplay.textContent = dominantFrequency.toFixed(2);
 
-                    const pitch = frequencyToNoteName(dominantFrequency);
+                    const pitch = pitchChecker.frequencyToNoteName(dominantFrequency);
                     pitchDisplay.textContent = pitch;
 
                     requestAnimationFrame(update);
