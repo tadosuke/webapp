@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Volume Display</title>
+</head>
+<body>
+    <p>音量：<progress id="volume" min="0" max="100" value="0"></progress></p>
+    <p>周波数：<span id="frequency">0</span> Hz</p>
+    <p>ピッチ：<span id="pitch">A4</span></p>
+    <script>
+    window.onload = function() {
+        function frequencyToNoteNumber(frequency) {
+            return 12 * (Math.log(frequency / 440) / Math.log(2)) + 69;
+        }
+
+        function noteNumberToName(noteNumber) {
+            const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const octave = Math.floor(noteNumber / 12);
+            const noteName = noteNames[noteNumber % 12];
+            return noteName + octave;
+        }
+
+        function frequencyToNoteName(frequency) {
+            const noteNumber = frequencyToNoteNumber(frequency);
+            return noteNumberToName(Math.round(noteNumber));
+        }
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const source = context.createMediaStreamSource(stream);
+                const analyser = context.createAnalyser();
+                analyser.fftSize = 1024;
+
+                source.connect(analyser);
+
+                const volumeDisplay = document.getElementById('volume');
+                const frequencyDisplay = document.getElementById('frequency');
+                const pitchDisplay = document.getElementById('pitch');
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                const update = () => {
+                    analyser.getByteFrequencyData(dataArray);
+
+                    let sum = 0;
+                    let maxIndex = 0;
+                    for(let i = 0; i < bufferLength; i++) {
+                        sum += dataArray[i];
+                        if(dataArray[i] > dataArray[maxIndex]) {
+                            maxIndex = i;
+                        }
+                    }
+
+                    const avg = sum / bufferLength;
+                    volumeDisplay.value = (avg / 255) * 100; // Adjust for progress bar
+
+                    const dominantFrequency = maxIndex * context.sampleRate / analyser.fftSize;
+                    frequencyDisplay.textContent = dominantFrequency.toFixed(2);
+
+                    const pitch = frequencyToNoteName(dominantFrequency);
+                    pitchDisplay.textContent = pitch;
+
+                    requestAnimationFrame(update);
+                };
+                update();
+            })
+            .catch(err => {
+                console.error('マイクのアクセス許可が必要です:', err);
+            });
+    };
+    </script>
+</body>
+</html>
