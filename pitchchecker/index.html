@@ -2,12 +2,10 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Volume Display</title>
+    <title>Frequency Spectrum Display</title>
 </head>
 <body>
-    <p>音量：<progress id="volume" min="0" max="100" value="0"></progress></p>
-    <p>周波数：<span id="frequency">0</span> Hz</p>
-    <p>ピッチ：<span id="pitch">A4</span></p>
+    <canvas id="spectrum" width="400" height="200"></canvas>
     <script>
     class PitchChecker {
         constructor() {
@@ -57,22 +55,20 @@
 
                 source.connect(analyser);
 
-                const volumeDisplay = document.getElementById('volume');
-                const frequencyDisplay = document.getElementById('frequency');
-                const pitchDisplay = document.getElementById('pitch');
+                const spectrumCanvas = document.getElementById('spectrum');
+                const spectrumContext = spectrumCanvas.getContext('2d');
+
                 const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
 
                 const update = () => {
                     analyser.getByteFrequencyData(dataArray);
-                    const { volume, maxIndex } = pitchChecker.calculateVolume(dataArray, bufferLength);
-                    volumeDisplay.value = volume;
 
-                    const dominantFrequency = maxIndex * context.sampleRate / analyser.fftSize;
-                    frequencyDisplay.textContent = dominantFrequency.toFixed(2);
-
-                    const pitch = pitchChecker.frequencyToNoteName(dominantFrequency);
-                    pitchDisplay.textContent = pitch;
+                    spectrumContext.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+                    for(let i = 0; i < dataArray.length; i++) {
+                        spectrumContext.fillStyle = `hsl(${i / dataArray.length * 300}, 100%, 50%)`;
+                        spectrumContext.fillRect(i * spectrumCanvas.width / dataArray.length, spectrumCanvas.height, spectrumCanvas.width / dataArray.length, -(dataArray[i] / 255) * spectrumCanvas.height);
+                    }
 
                     requestAnimationFrame(update);
                 };
