@@ -71,13 +71,10 @@
       }
     }
 
-    // クリック音アプリを管理するクラス
-    class ClickSoundApp {
-      constructor() {
-        this.bpm = 120;
-        this.clickSound = new SoundPlayer('click_sound.mp3');
-        this.backSound = new SoundPlayer('back_sound.mp3');
-        this.timer = new Timer(this.bpm, this.clickSound);
+    // UIを管理するクラス
+    class UIManager {
+      constructor(clickSoundApp) {
+        this.clickSoundApp = clickSoundApp;
       }
 
       // UIを生成する
@@ -87,7 +84,7 @@
         // BPM表示の要素
         var bpmDisplay = document.createElement('span');
         bpmDisplay.id = 'bpmDisplay';
-        bpmDisplay.textContent = this.bpm;
+        bpmDisplay.textContent = this.clickSoundApp.bpm;
         var bpmLabel = document.createElement('p');
         bpmLabel.textContent = 'BPM: ';
         bpmLabel.appendChild(bpmDisplay);
@@ -98,24 +95,24 @@
         bpmSlider.id = 'bpmSlider';
         bpmSlider.min = '60';
         bpmSlider.max = '240';
-        bpmSlider.value = this.bpm;
-        bpmSlider.addEventListener('input', () => this.updateBPM());
+        bpmSlider.value = this.clickSoundApp.bpm;
+        bpmSlider.addEventListener('input', () => this.clickSoundApp.updateBPM());
 
         // Startボタンの要素
         var startButton = document.createElement('button');
         startButton.textContent = 'Start';
-        startButton.addEventListener('click', () => this.startTimer());
+        startButton.addEventListener('click', () => this.clickSoundApp.startTimer());
 
         // Stopボタンの要素
         var stopButton = document.createElement('button');
         stopButton.textContent = 'Stop';
-        stopButton.addEventListener('click', () => this.stopTimer());
+        stopButton.addEventListener('click', () => this.clickSoundApp.stopTimer());
 
         // 裏ボタンの要素
         var backButton = document.createElement('button');
         backButton.id = 'backButton';
         backButton.textContent = '裏';
-        backButton.addEventListener('mousedown', () => this.playBackSound());
+        backButton.addEventListener('mousedown', () => this.clickSoundApp.playBackSound());
 
         // 生成した要素をappDivに追加する
         appDiv.appendChild(bpmLabel);
@@ -123,6 +120,17 @@
         appDiv.appendChild(startButton);
         appDiv.appendChild(stopButton);
         appDiv.appendChild(backButton);
+      }
+    }
+
+    // クリック音アプリを管理するクラス
+    class ClickSoundApp {
+      constructor() {
+        this.bpm = 120;
+        this.clickSound = new SoundPlayer('click_sound.mp3');
+        this.backSound = new SoundPlayer('back_sound.mp3');
+        this.timer = new Timer(this.bpm, this.clickSound);
+        this.uiManager = new UIManager(this);
       }
 
       // BPMを更新する
@@ -158,7 +166,7 @@
 
       // アプリケーションを初期化する
       initialize() {
-        this.createUI();
+        this.uiManager.createUI();
         document.addEventListener('keydown', (event) => this.handleKeyDown(event));
       }
     }
