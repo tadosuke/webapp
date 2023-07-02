@@ -9,6 +9,15 @@
             gap: 5px;
             padding: 5px;
         }
+        .grid-item {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: center;
+            cursor: pointer;
+            color: black;
+            font-size: 0.8em;
+            background-color: pink;
+        }
     </style>
     <script src="https://unpkg.com/tone@14"></script>
 </head>
@@ -80,18 +89,18 @@
 
         // ボタンを生成するクラス
         class ButtonGenerator {
-          constructor(variations, keys, colors, container) {
+          constructor(variations, keys, container) {
             this.variations = variations;
             this.keys = keys;
-            this.colors = colors;
             this.container = container;
             this.chordButtons = []; // ボタンの配列を追加
+            this.colorMap = this.generateColorMap(); // キーに対応する色のマップを生成
           }
 
           // ボタンを生成し、クリック時の処理を追加するメソッド
           generateButtons(chordDictionary) {
-            this.keys.forEach((key) => {
-              this.variations.forEach((variation, index) => {
+            this.keys.forEach((key, index) => {
+              this.variations.forEach(variation => {
                 const button = this.createButton(key, variation, index);
                 this.container.appendChild(button);
               });
@@ -104,7 +113,7 @@
             const button = document.createElement('div');
             button.classList.add('grid-item');
             button.textContent = `${key} ${variation}`;
-            button.style.backgroundColor = this.colors[index % this.colors.length];
+            button.style.backgroundColor = this.colorMap[key]; // キーに対応する色を設定
 
             // クリックイベントのハンドラを作成
             const clickHandler = () => {
@@ -122,6 +131,20 @@
 
             return button;
           }
+
+          // キーに対応する色のマップを生成するメソッド
+          generateColorMap() {
+            const colors = ['lightpink', 'lightblue', 'lightgreen', 'lightyellow', 'lavender', 'peachpuff', 'plum', 'palegoldenrod', 'paleturquoise', 'palevioletred', 'palegreen', 'thistle'];
+            const colorMap = {};
+            const keysLength = this.keys.length;
+            for (let i = 0; i < keysLength; i++) {
+              const key = this.keys[i];
+              const hue = Math.floor((i / keysLength) * 360);
+              const color = `hsl(${hue}, 70%, 80%)`;
+              colorMap[key] = color;
+            }
+            return colorMap;
+          }
         }
 
         // ChordDictionaryクラスのインスタンスを作成
@@ -134,7 +157,6 @@
         const buttonGenerator = new ButtonGenerator(
           ['Major', 'Minor', '7', '6'],
           ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
-          ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'],
           document.querySelector('.grid-container')
         );
 
