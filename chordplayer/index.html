@@ -26,10 +26,16 @@
     </div>
 
     <script>
+        // 使用するキーの配列
         const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        // コードのバリエーション（MajorとMinor）の配列
         const variations = ['Major', 'Minor'];
+
+        // ボタンの背景色の配列
         const colors = ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'];
 
+        // コードの定義
         const chords = {
             Major: {
                 'C': ['C4', 'E4', 'G4'],
@@ -61,21 +67,30 @@
             }
         };
 
+        // Tone.jsで使用する音声合成オブジェクトの作成
         const synth = new Tone.PolySynth().toDestination();
+
+        // ボタンを追加するコンテナの取得
         const container = document.querySelector('.grid-container');
 
+        // バリエーションとキーの組み合わせに対してボタンを作成する
         variations.forEach(variation => {
             keys.forEach((key, index) => {
+                // ボタン要素の作成
                 const button = document.createElement('div');
                 button.classList.add('grid-item');
                 button.textContent = `${key} ${variation}`;
                 button.style.backgroundColor = colors[index % colors.length];
 
+                // ボタンがクリックされた時の処理を追加
                 button.addEventListener('click', () => {
+                    // クリックされたボタンに対応するコードを取得
                     const chord = chords[variation][key];
+                    // 音を鳴らす
                     synth.triggerAttackRelease(chord, '0.5s');
                 });
 
+                // コンテナにボタンを追加
                 container.appendChild(button);
             });
         });
