@@ -6,14 +6,16 @@
         .grid-container {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
-            gap: 10px;
-            padding: 10px;
+            gap: 5px;
+            padding: 5px;
         }
         .grid-item {
             border: 1px solid black;
-            padding: 20px;
+            padding: 5px;
             text-align: center;
             cursor: pointer;
+            color: black;
+            font-size: 0.8em;
         }
     </style>
     <script src="https://unpkg.com/tone@14"></script>
@@ -26,6 +28,7 @@
     <script>
         const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const variations = ['Major', 'Minor'];
+        const colors = ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'];
 
         const chords = {
             Major: {
@@ -62,10 +65,11 @@
         const container = document.querySelector('.grid-container');
 
         variations.forEach(variation => {
-            keys.forEach(key => {
+            keys.forEach((key, index) => {
                 const button = document.createElement('div');
                 button.classList.add('grid-item');
                 button.textContent = `${key} ${variation}`;
+                button.style.backgroundColor = colors[index % colors.length];
 
                 button.addEventListener('click', () => {
                     const chord = chords[variation][key];
