@@ -29,7 +29,6 @@
         // コードのテーブルと取得処理を担当するクラス
         class ChordDictionary {
           constructor() {
-            // 初期音程の定義
             this.initialPitch = {
               'C': 0,
               'C#': 1,
@@ -50,11 +49,10 @@
           getChord(variation, key) {
             const intervals = this.getInterval(variation);
             const rootPitch = this.initialPitch[key];
-            const chord = [];
-            intervals.forEach(interval => {
+            const chord = intervals.map(interval => {
               const pitch = (rootPitch + interval) % 12;
               const note = Object.keys(this.initialPitch).find(key => this.initialPitch[key] === pitch);
-              chord.push(note + '4');
+              return note + '4';
             });
             return chord;
           }
@@ -75,7 +73,6 @@
             }
           }
         }
-
 
         // コード再生処理を担当するクラス
         class ChordPlayer {
@@ -104,19 +101,23 @@
           generateButtons() {
             this.variations.forEach(variation => {
               this.keys.forEach((key, index) => {
-                const button = document.createElement('div');
-                button.classList.add('grid-item');
-                button.textContent = `${key} ${variation}`;
-                button.style.backgroundColor = this.colors[index % this.colors.length];
-
-                button.addEventListener('click', () => {
-                  const chord = this.chordDictionary.getChord(variation, key);
-                  this.chordPlayer.playChord(chord);
-                });
-
+                const button = this.createButton(key, variation, index);
                 this.container.appendChild(button);
               });
             });
+          }
+
+          // ボタンを生成するメソッド
+          createButton(key, variation, index) {
+            const button = document.createElement('div');
+            button.classList.add('grid-item');
+            button.textContent = `${key} ${variation}`;
+            button.style.backgroundColor = this.colors[index % this.colors.length];
+            button.addEventListener('click', () => {
+              const chord = this.chordDictionary.getChord(variation, key);
+              this.chordPlayer.playChord(chord);
+            });
+            return button;
           }
         }
 
