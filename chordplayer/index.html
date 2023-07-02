@@ -68,52 +68,54 @@
             }
         }
 
-        // コードボタンを作成し、音を再生するプレイヤークラス
-        class ChordPlayer {
-            constructor() {
-                // 使用するキー、バリエーション、ボタンの背景色の配列を定義
-                this.keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-                this.variations = ['Major', 'Minor'];
-                this.colors = ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'];
-
-                // Tone.jsで使用する音声合成オブジェクトを作成
-                this.synth = new Tone.PolySynth().toDestination();
-
-                // コンテナ要素を取得
-                this.container = document.querySelector('.grid-container');
-
-                // ChordDictionaryクラスのインスタンスを作成
-                this.chordDictionary = new ChordDictionary();
+        // ボタンを生成するクラス
+        class ButtonGenerator {
+            constructor(variations, keys, colors, chordDictionary, container) {
+                this.variations = variations;
+                this.keys = keys;
+                this.colors = colors;
+                this.chordDictionary = chordDictionary;
+                this.container = container;
             }
 
-            // ボタンを作成し、クリック時に対応するコードを再生するメソッド
-            createButtons() {
+            // ボタンを生成し、クリック時の処理を追加するメソッド
+            generateButtons() {
                 this.variations.forEach(variation => {
                     this.keys.forEach((key, index) => {
-                        // ボタン要素を作成
                         const button = document.createElement('div');
                         button.classList.add('grid-item');
                         button.textContent = `${key} ${variation}`;
                         button.style.backgroundColor = this.colors[index % this.colors.length];
 
-                        // ボタンがクリックされた時の処理を追加
                         button.addEventListener('click', () => {
-                            // ChordDictionaryからコードを取得
                             const chord = this.chordDictionary.getChord(variation, key);
-                            // 音を再生
-                            this.synth.triggerAttackRelease(chord, '0.5s');
+                            this.playChord(chord);
                         });
 
-                        // コンテナにボタンを追加
                         this.container.appendChild(button);
                     });
                 });
             }
+
+            // コードを再生するメソッド
+            playChord(chord) {
+                const synth = new Tone.PolySynth().toDestination();
+                synth.triggerAttackRelease(chord, '0.5s');
+            }
         }
 
-        // ChordPlayerクラスのインスタンスを作成し、ボタンを作成
-        const chordPlayer = new ChordPlayer();
-        chordPlayer.createButtons();
+        // ChordDictionaryクラスのインスタンスを作成
+        const chordDictionary = new ChordDictionary();
+
+        // ボタン生成器のインスタンスを作成し、ボタンを生成
+        const buttonGenerator = new ButtonGenerator(
+            ['Major', 'Minor'],
+            ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
+            ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'],
+            chordDictionary,
+            document.querySelector('.grid-container')
+        );
+        buttonGenerator.generateButtons();
     </script>
 </body>
 </html>
