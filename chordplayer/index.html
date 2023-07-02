@@ -26,12 +26,10 @@
     </div>
 
     <script>
-        class ChordPlayer {
+        // コードのテーブルと取得処理を担当するクラス
+        class ChordDictionary {
             constructor() {
-                this.keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-                this.variations = ['Major', 'Minor'];
-                this.colors = ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'];
-
+                // コードのテーブルを定義
                 this.chords = {
                     Major: {
                         'C': ['C4', 'E4', 'G4'],
@@ -62,34 +60,58 @@
                         'B': ['B4', 'D5', 'F#5']
                     }
                 };
-
-                this.synth = new Tone.PolySynth().toDestination();
-                this.container = document.querySelector('.grid-container');
             }
 
-            createButtons() {
-                this.variations.forEach(variation => {
-                    this.keys.forEach((key, index) => {
-                        const button = document.createElement('div');
-                        button.classList.add('grid-item');
-                        button.textContent = `${key} ${variation}`;
-                        button.style.backgroundColor = this.colors[index % this.colors.length];
-
-                        button.addEventListener('click', () => {
-                            const chord = this.getChord(variation, key);
-                            this.synth.triggerAttackRelease(chord, '0.5s');
-                        });
-
-                        this.container.appendChild(button);
-                    });
-                });
-            }
-
+            // バリエーションとキーに対応するコードの構成音リストを返すメソッド
             getChord(variation, key) {
                 return this.chords[variation][key];
             }
         }
 
+        // コードボタンを作成し、音を再生するプレイヤークラス
+        class ChordPlayer {
+            constructor() {
+                // 使用するキー、バリエーション、ボタンの背景色の配列を定義
+                this.keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                this.variations = ['Major', 'Minor'];
+                this.colors = ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'];
+
+                // Tone.jsで使用する音声合成オブジェクトを作成
+                this.synth = new Tone.PolySynth().toDestination();
+
+                // コンテナ要素を取得
+                this.container = document.querySelector('.grid-container');
+
+                // ChordDictionaryクラスのインスタンスを作成
+                this.chordDictionary = new ChordDictionary();
+            }
+
+            // ボタンを作成し、クリック時に対応するコードを再生するメソッド
+            createButtons() {
+                this.variations.forEach(variation => {
+                    this.keys.forEach((key, index) => {
+                        // ボタン要素を作成
+                        const button = document.createElement('div');
+                        button.classList.add('grid-item');
+                        button.textContent = `${key} ${variation}`;
+                        button.style.backgroundColor = this.colors[index % this.colors.length];
+
+                        // ボタンがクリックされた時の処理を追加
+                        button.addEventListener('click', () => {
+                            // ChordDictionaryからコードを取得
+                            const chord = this.chordDictionary.getChord(variation, key);
+                            // 音を再生
+                            this.synth.triggerAttackRelease(chord, '0.5s');
+                        });
+
+                        // コンテナにボタンを追加
+                        this.container.appendChild(button);
+                    });
+                });
+            }
+        }
+
+        // ChordPlayerクラスのインスタンスを作成し、ボタンを作成
         const chordPlayer = new ChordPlayer();
         chordPlayer.createButtons();
     </script>
