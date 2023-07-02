@@ -4,30 +4,19 @@
   <title>クリック音アプリ</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Tone.jsのCDNを読み込む -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.26/Tone.js"></script>
 </head>
 <body>
   <div id="app" class="app"></div>
 
   <script>
-    // サウンド再生を担当するクラス
-    class SoundPlayer {
-      constructor(src) {
-        this.audio = new Audio(src);
-        this.audio.preload = 'auto';
-      }
-
-      // サウンドを再生する
-      play() {
-        this.audio.currentTime = 0;
-        this.audio.play();
-      }
-    }
-
     // タイマーを管理するクラス
     class Timer {
-      constructor(bpm, soundPlayer) {
+      constructor(bpm) {
         this.bpm = bpm;
-        this.soundPlayer = soundPlayer;
+        this.synth = new Tone.Synth().toDestination(); // シンセサイザーを生成し、デフォルトの出力先に接続する
         this.interval = null;
         this.isPlaying = false;
       }
@@ -45,7 +34,7 @@
         }
         var intervalDuration = this.calculateInterval();
         this.interval = setInterval(() => {
-          this.soundPlayer.play();
+          this.synth.triggerAttackRelease("C5", "32n");
         }, intervalDuration);
 
         this.isPlaying = true;
@@ -96,7 +85,7 @@
         bpmSlider.min = '60';
         bpmSlider.max = '240';
         bpmSlider.value = this.clickSoundApp.bpm;
-        bpmSlider.addEventListener('input', () => this.clickSoundApp.updateBPM());
+        bpmSlider.addEventListener('input', () => this.clickSoundApp.updateBPM(bpmSlider.value)); // updateBPM関数の引数にbpmSliderの値を渡すよう修正
 
         // Startボタンの要素
         var startButton = document.createElement('button');
@@ -132,17 +121,15 @@
     class ClickSoundApp {
       constructor() {
         this.bpm = 120;
-        this.clickSound = new SoundPlayer('click_sound.mp3');
-        this.backSound = new SoundPlayer('back_sound.mp3');
-        this.timer = new Timer(this.bpm, this.clickSound);
+        this.timer = new Timer(this.bpm);
         this.uiManager = new UIManager(this);
       }
 
       // BPMを更新する
-      updateBPM() {
+      updateBPM(newBPM) {
         var slider = document.getElementById('bpmSlider');
         var display = document.getElementById('bpmDisplay');
-        this.bpm = parseInt(slider.value);
+        this.bpm = parseInt(newBPM);
         display.textContent = this.bpm;
         this.timer.updateBPM(this.bpm);
       }
@@ -159,20 +146,13 @@
 
       // 裏拍の音を再生する
       playBackSound() {
-        this.backSound.play();
-      }
-
-      // キーボードのキー押下イベントを処理する関数
-      handleKeyDown(event) {
-        if (event.keyCode === 32) {
-          this.playBackSound();
-        }
+        var synth = new Tone.Synth().toDestination(); // シンセサイザーを生成し、デフォルトの出力先に接続する
+        synth.triggerAttackRelease("G5", "32n");
       }
 
       // アプリケーションを初期化する
       initialize() {
         this.uiManager.createUI();
-        document.addEventListener('keydown', (event) => this.handleKeyDown(event));
       }
     }
 
