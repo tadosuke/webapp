@@ -27,6 +27,15 @@
         return millisecondsPerBeat;
       }
 
+      // タイマーをトグルする
+      toggle() {
+        if (this.isPlaying) {
+          this.stop();
+        } else {
+          this.start();
+        }
+      }
+
       // タイマーを開始する
       start() {
         if (this.isPlaying) {
@@ -87,25 +96,22 @@
         bpmSlider.value = this.clickSoundApp.bpm;
         bpmSlider.addEventListener('input', () => this.clickSoundApp.updateBPM(bpmSlider.value)); // updateBPM関数の引数にbpmSliderの値を渡すよう修正
 
-        // Startボタンの要素
-        var startButton = document.createElement('button');
-        startButton.textContent = 'Start';
-        startButton.addEventListener('click', () => this.clickSoundApp.startTimer());
-
-        // Stopボタンの要素
-        var stopButton = document.createElement('button');
-        stopButton.textContent = 'Stop';
-        stopButton.addEventListener('click', () => this.clickSoundApp.stopTimer());
+        // Start/Stopボタンの要素
+        var startStopButton = document.createElement('button');
+        startStopButton.id = 'startStopButton';
+        startStopButton.textContent = 'Start';
+        startStopButton.addEventListener('click', () => {
+          this.clickSoundApp.timer.toggle();
+          startStopButton.textContent = this.clickSoundApp.timer.isPlaying ? 'Stop' : 'Start';
+        });
 
         // ボタンにマージンを追加
-        startButton.style.margin = '3px';
-        stopButton.style.margin = '3px';
+        startStopButton.style.margin = '3px';
 
         // 生成した要素をappDivに追加する
         appDiv.appendChild(bpmLabel);
         appDiv.appendChild(bpmSlider);
-        appDiv.appendChild(startButton);
-        appDiv.appendChild(stopButton);
+        appDiv.appendChild(startStopButton);
       }
     }
 
@@ -125,16 +131,6 @@
         this.bpm = parseInt(newBPM);
         display.textContent = this.bpm;
         this.timer.updateBPM(this.bpm);
-      }
-
-      // タイマーを開始する
-      startTimer() {
-        this.timer.start();
-      }
-
-      // タイマーを停止する
-      stopTimer() {
-        this.timer.stop();
       }
 
       // アプリケーションを初期化する
