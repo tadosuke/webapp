@@ -5,17 +5,9 @@
     <style>
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(12, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 5px;
             padding: 5px;
-        }
-        .grid-item {
-            border: 1px solid black;
-            padding: 5px;
-            text-align: center;
-            cursor: pointer;
-            color: black;
-            font-size: 0.8em;
         }
     </style>
     <script src="https://unpkg.com/tone@14"></script>
@@ -98,8 +90,8 @@
 
           // ボタンを生成し、クリック時の処理を追加するメソッド
           generateButtons(chordDictionary) {
-            this.variations.forEach(variation => {
-              this.keys.forEach((key, index) => {
+            this.keys.forEach((key) => {
+              this.variations.forEach((variation, index) => {
                 const button = this.createButton(key, variation, index);
                 this.container.appendChild(button);
               });
@@ -152,7 +144,6 @@
           const chord = event.detail;
           chordPlayer.playChord(chord);
         });
-
     </script>
 </body>
 </html>
