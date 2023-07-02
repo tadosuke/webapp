@@ -26,74 +26,72 @@
     </div>
 
     <script>
-        // 使用するキーの配列
-        const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        class ChordPlayer {
+            constructor() {
+                this.keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                this.variations = ['Major', 'Minor'];
+                this.colors = ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'];
 
-        // コードのバリエーション（MajorとMinor）の配列
-        const variations = ['Major', 'Minor'];
+                this.chords = {
+                    Major: {
+                        'C': ['C4', 'E4', 'G4'],
+                        'C#': ['C#4', 'F4', 'G#4'],
+                        'D': ['D4', 'F#4', 'A4'],
+                        'D#': ['D#4', 'G4', 'A#4'],
+                        'E': ['E4', 'G#4', 'B4'],
+                        'F': ['F4', 'A4', 'C5'],
+                        'F#': ['F#4', 'A#4', 'C#5'],
+                        'G': ['G4', 'B4', 'D5'],
+                        'G#': ['G#4', 'C5', 'D#5'],
+                        'A': ['A4', 'C#5', 'E5'],
+                        'A#': ['A#4', 'D5', 'F5'],
+                        'B': ['B4', 'D#5', 'F#5']
+                    },
+                    Minor: {
+                        'C': ['C4', 'D#4', 'G4'],
+                        'C#': ['C#4', 'E4', 'G#4'],
+                        'D': ['D4', 'F4', 'A4'],
+                        'D#': ['D#4', 'F#4', 'A#4'],
+                        'E': ['E4', 'G4', 'B4'],
+                        'F': ['F4', 'G#4', 'C5'],
+                        'F#': ['F#4', 'A4', 'C#5'],
+                        'G': ['G4', 'A#4', 'D5'],
+                        'G#': ['G#4', 'B4', 'D#5'],
+                        'A': ['A4', 'C5', 'E5'],
+                        'A#': ['A#4', 'C#5', 'F5'],
+                        'B': ['B4', 'D5', 'F#5']
+                    }
+                };
 
-        // ボタンの背景色の配列
-        const colors = ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'];
-
-        // コードの定義
-        const chords = {
-            Major: {
-                'C': ['C4', 'E4', 'G4'],
-                'C#': ['C#4', 'F4', 'G#4'],
-                'D': ['D4', 'F#4', 'A4'],
-                'D#': ['D#4', 'G4', 'A#4'],
-                'E': ['E4', 'G#4', 'B4'],
-                'F': ['F4', 'A4', 'C5'],
-                'F#': ['F#4', 'A#4', 'C#5'],
-                'G': ['G4', 'B4', 'D5'],
-                'G#': ['G#4', 'C5', 'D#5'],
-                'A': ['A4', 'C#5', 'E5'],
-                'A#': ['A#4', 'D5', 'F5'],
-                'B': ['B4', 'D#5', 'F#5']
-            },
-            Minor: {
-                'C': ['C4', 'D#4', 'G4'],
-                'C#': ['C#4', 'E4', 'G#4'],
-                'D': ['D4', 'F4', 'A4'],
-                'D#': ['D#4', 'F#4', 'A#4'],
-                'E': ['E4', 'G4', 'B4'],
-                'F': ['F4', 'G#4', 'C5'],
-                'F#': ['F#4', 'A4', 'C#5'],
-                'G': ['G4', 'A#4', 'D5'],
-                'G#': ['G#4', 'B4', 'D#5'],
-                'A': ['A4', 'C5', 'E5'],
-                'A#': ['A#4', 'C#5', 'F5'],
-                'B': ['B4', 'D5', 'F#5']
+                this.synth = new Tone.PolySynth().toDestination();
+                this.container = document.querySelector('.grid-container');
             }
-        };
 
-        // Tone.jsで使用する音声合成オブジェクトの作成
-        const synth = new Tone.PolySynth().toDestination();
+            createButtons() {
+                this.variations.forEach(variation => {
+                    this.keys.forEach((key, index) => {
+                        const button = document.createElement('div');
+                        button.classList.add('grid-item');
+                        button.textContent = `${key} ${variation}`;
+                        button.style.backgroundColor = this.colors[index % this.colors.length];
 
-        // ボタンを追加するコンテナの取得
-        const container = document.querySelector('.grid-container');
+                        button.addEventListener('click', () => {
+                            const chord = this.getChord(variation, key);
+                            this.synth.triggerAttackRelease(chord, '0.5s');
+                        });
 
-        // バリエーションとキーの組み合わせに対してボタンを作成する
-        variations.forEach(variation => {
-            keys.forEach((key, index) => {
-                // ボタン要素の作成
-                const button = document.createElement('div');
-                button.classList.add('grid-item');
-                button.textContent = `${key} ${variation}`;
-                button.style.backgroundColor = colors[index % colors.length];
-
-                // ボタンがクリックされた時の処理を追加
-                button.addEventListener('click', () => {
-                    // クリックされたボタンに対応するコードを取得
-                    const chord = chords[variation][key];
-                    // 音を鳴らす
-                    synth.triggerAttackRelease(chord, '0.5s');
+                        this.container.appendChild(button);
+                    });
                 });
+            }
 
-                // コンテナにボタンを追加
-                container.appendChild(button);
-            });
-        });
+            getChord(variation, key) {
+                return this.chords[variation][key];
+            }
+        }
+
+        const chordPlayer = new ChordPlayer();
+        chordPlayer.createButtons();
     </script>
 </body>
 </html>
