@@ -28,122 +28,115 @@
     <script>
         // コードのテーブルと取得処理を担当するクラス
         class ChordDictionary {
-            constructor() {
-                // コードのテーブルを定義
-                this.chords = {
-                    Major: {
-                        'C': ['C4', 'E4', 'G4'],
-                        'C#': ['C#4', 'F4', 'G#4'],
-                        'D': ['D4', 'F#4', 'A4'],
-                        'D#': ['D#4', 'G4', 'A#4'],
-                        'E': ['E4', 'G#4', 'B4'],
-                        'F': ['F4', 'A4', 'C5'],
-                        'F#': ['F#4', 'A#4', 'C#5'],
-                        'G': ['G4', 'B4', 'D5'],
-                        'G#': ['G#4', 'C5', 'D#5'],
-                        'A': ['A4', 'C#5', 'E5'],
-                        'A#': ['A#4', 'D5', 'F5'],
-                        'B': ['B4', 'D#5', 'F#5']
-                    },
-                    Minor: {
-                        'C': ['C4', 'D#4', 'G4'],
-                        'C#': ['C#4', 'E4', 'G#4'],
-                        'D': ['D4', 'F4', 'A4'],
-                        'D#': ['D#4', 'F#4', 'A#4'],
-                        'E': ['E4', 'G4', 'B4'],
-                        'F': ['F4', 'G#4', 'C5'],
-                        'F#': ['F#4', 'A4', 'C#5'],
-                        'G': ['G4', 'A#4', 'D5'],
-                        'G#': ['G#4', 'B4', 'D#5'],
-                        'A': ['A4', 'C5', 'E5'],
-                        'A#': ['A#4', 'C#5', 'F5'],
-                        'B': ['B4', 'D5', 'F#5']
-                    },
-                    7: {
-                        'C': ['C4', 'E4', 'G4', 'A#4'],
-                        'C#': ['C#4', 'F4', 'G#4', 'B4'],
-                        'D': ['D4', 'F#4', 'A4', 'C5'],
-                        'D#': ['D#4', 'G4', 'A#4', 'C#5'],
-                        'E': ['E4', 'G#4', 'B4', 'D5'],
-                        'F': ['F4', 'A4', 'C5', 'D#5'],
-                        'F#': ['F#4', 'A#4', 'C#5', 'E5'],
-                        'G': ['G4', 'B4', 'D5', 'F5'],
-                        'G#': ['G#4', 'C5', 'D#5', 'F#5'],
-                        'A': ['A4', 'C#5', 'E5', 'G5'],
-                        'A#': ['A#4', 'D5', 'F5', 'G#5'],
-                        'B': ['B4', 'D#5', 'F#5', 'A5']
-                    },
-                    6: {
-                        'C': ['C4', 'E4', 'G4', 'A4'],
-                        'C#': ['C#4', 'F4', 'G#4', 'A#4'],
-                        'D': ['D4', 'F#4', 'A4', 'B4'],
-                        'D#': ['D#4', 'G4', 'A#4', 'C5'],
-                        'E': ['E4', 'G#4', 'B4', 'C#5'],
-                        'F': ['F4', 'A4', 'C5', 'D5'],
-                        'F#': ['F#4', 'A#4', 'C#5', 'D#5'],
-                        'G': ['G4', 'B4', 'D5', 'E5'],
-                        'G#': ['G#4', 'C5', 'D#5', 'F5'],
-                        'A': ['A4', 'C#5', 'E5', 'F#5'],
-                        'A#': ['A#4', 'D5', 'F5', 'G5'],
-                        'B': ['B4', 'D#5', 'F#5', 'G#5']
-                    }
-                };
-            }
+          constructor() {
+            // 初期音程の定義
+            this.initialPitch = {
+              'C': 0,
+              'C#': 1,
+              'D': 2,
+              'D#': 3,
+              'E': 4,
+              'F': 5,
+              'F#': 6,
+              'G': 7,
+              'G#': 8,
+              'A': 9,
+              'A#': 10,
+              'B': 11
+            };
+          }
 
-            // バリエーションとキーに対応するコードの構成音リストを返すメソッド
-            getChord(variation, key) {
-                return this.chords[variation][key];
+          // バリエーションとキーに対応するコードの構成音リストを返すメソッド
+          getChord(variation, key) {
+            const intervals = this.getInterval(variation);
+            const rootPitch = this.initialPitch[key];
+            const chord = [];
+            intervals.forEach(interval => {
+              const pitch = (rootPitch + interval) % 12;
+              const note = Object.keys(this.initialPitch).find(key => this.initialPitch[key] === pitch);
+              chord.push(note + '4');
+            });
+            return chord;
+          }
+
+          // バリエーションに対応する相対音程のリストを返すメソッド
+          getInterval(variation) {
+            switch (variation) {
+              case 'Major':
+                return [0, 4, 7];
+              case 'Minor':
+                return [0, 3, 7];
+              case '7':
+                return [0, 4, 7, 10];
+              case '6':
+                return [0, 4, 7, 9];
+              default:
+                return [];
             }
+          }
+        }
+
+
+        // コード再生処理を担当するクラス
+        class ChordPlayer {
+          constructor() {
+            this.synth = new Tone.PolySynth().toDestination();
+          }
+
+          // コードを再生するメソッド
+          playChord(chord) {
+            this.synth.triggerAttackRelease(chord, '0.5s');
+          }
         }
 
         // ボタンを生成するクラス
         class ButtonGenerator {
-            constructor(variations, keys, colors, chordDictionary, container) {
-                this.variations = variations;
-                this.keys = keys;
-                this.colors = colors;
-                this.chordDictionary = chordDictionary;
-                this.container = container;
-            }
+          constructor(variations, keys, colors, chordDictionary, chordPlayer, container) {
+            this.variations = variations;
+            this.keys = keys;
+            this.colors = colors;
+            this.chordDictionary = chordDictionary;
+            this.chordPlayer = chordPlayer;
+            this.container = container;
+          }
 
-            // ボタンを生成し、クリック時の処理を追加するメソッド
-            generateButtons() {
-                this.variations.forEach(variation => {
-                    this.keys.forEach((key, index) => {
-                        const button = document.createElement('div');
-                        button.classList.add('grid-item');
-                        button.textContent = `${key} ${variation}`;
-                        button.style.backgroundColor = this.colors[index % this.colors.length];
+          // ボタンを生成し、クリック時の処理を追加するメソッド
+          generateButtons() {
+            this.variations.forEach(variation => {
+              this.keys.forEach((key, index) => {
+                const button = document.createElement('div');
+                button.classList.add('grid-item');
+                button.textContent = `${key} ${variation}`;
+                button.style.backgroundColor = this.colors[index % this.colors.length];
 
-                        button.addEventListener('click', () => {
-                            const chord = this.chordDictionary.getChord(variation, key);
-                            this.playChord(chord);
-                        });
-
-                        this.container.appendChild(button);
-                    });
+                button.addEventListener('click', () => {
+                  const chord = this.chordDictionary.getChord(variation, key);
+                  this.chordPlayer.playChord(chord);
                 });
-            }
 
-            // コードを再生するメソッド
-            playChord(chord) {
-                const synth = new Tone.PolySynth().toDestination();
-                synth.triggerAttackRelease(chord, '0.5s');
-            }
+                this.container.appendChild(button);
+              });
+            });
+          }
         }
 
         // ChordDictionaryクラスのインスタンスを作成
         const chordDictionary = new ChordDictionary();
 
+        // ChordPlayerクラスのインスタンスを作成
+        const chordPlayer = new ChordPlayer();
+
         // ボタン生成器のインスタンスを作成し、ボタンを生成
         const buttonGenerator = new ButtonGenerator(
-            ['Major', 'Minor', '7', '6'],
-            ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
-            ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'],
-            chordDictionary,
-            document.querySelector('.grid-container')
+          ['Major', 'Minor', '7', '6'],
+          ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
+          ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'],
+          chordDictionary,
+          chordPlayer,
+          document.querySelector('.grid-container')
         );
         buttonGenerator.generateButtons();
+
     </script>
 </body>
 </html>
