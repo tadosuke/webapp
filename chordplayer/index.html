@@ -61,8 +61,8 @@
         const synth = new Tone.PolySynth().toDestination();
         const container = document.querySelector('.grid-container');
 
-        keys.forEach(key => {
-            variations.forEach(variation => {
+        variations.forEach(variation => {
+            keys.forEach(key => {
                 const button = document.createElement('div');
                 button.classList.add('grid-item');
                 button.textContent = `${key} ${variation}`;
