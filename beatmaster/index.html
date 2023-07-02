@@ -14,9 +14,9 @@
   <script>
     // タイマーを管理するクラス
     class Timer {
-      constructor(bpm) {
+      constructor(bpm, synth) {
         this.bpm = bpm;
-        this.synth = new Tone.Synth().toDestination(); // シンセサイザーを生成し、デフォルトの出力先に接続する
+        this.synth = synth;
         this.interval = null;
         this.isPlaying = false;
       }
@@ -60,28 +60,10 @@
       }
     }
 
-    // サウンドを管理するクラス
-    class SoundManager {
-      constructor() {
-        this.synth = new Tone.Synth().toDestination(); // シンセサイザーを生成し、デフォルトの出力先に接続する
-      }
-
-      // クリック音を再生する
-      playClickSound() {
-        this.synth.triggerAttackRelease("C5", "32n");
-      }
-
-      // 裏拍の音を再生する
-      playBackSound() {
-        this.synth.triggerAttackRelease("G5", "32n");
-      }
-    }
-
     // UIを管理するクラス
     class UIManager {
-      constructor(clickSoundApp, soundManager) {
+      constructor(clickSoundApp) {
         this.clickSoundApp = clickSoundApp;
-        this.soundManager = soundManager;
       }
 
       // UIを生成する
@@ -108,33 +90,22 @@
         // Startボタンの要素
         var startButton = document.createElement('button');
         startButton.textContent = 'Start';
-        startButton.addEventListener('click', () => {
-          this.clickSoundApp.startTimer();
-          this.soundManager.playClickSound();
-        });
+        startButton.addEventListener('click', () => this.clickSoundApp.startTimer());
 
         // Stopボタンの要素
         var stopButton = document.createElement('button');
         stopButton.textContent = 'Stop';
         stopButton.addEventListener('click', () => this.clickSoundApp.stopTimer());
 
-        // 裏ボタンの要素
-        var backButton = document.createElement('button');
-        backButton.id = 'backButton';
-        backButton.textContent = '裏';
-        backButton.addEventListener('mousedown', () => this.soundManager.playBackSound());
-
         // ボタンにマージンを追加
         startButton.style.margin = '3px';
         stopButton.style.margin = '3px';
-        backButton.style.margin = '3px';
 
         // 生成した要素をappDivに追加する
         appDiv.appendChild(bpmLabel);
         appDiv.appendChild(bpmSlider);
         appDiv.appendChild(startButton);
         appDiv.appendChild(stopButton);
-        appDiv.appendChild(backButton);
       }
     }
 
@@ -142,9 +113,9 @@
     class ClickSoundApp {
       constructor() {
         this.bpm = 120;
-        this.timer = new Timer(this.bpm);
-        this.soundManager = new SoundManager();
-        this.uiManager = new UIManager(this, this.soundManager);
+        this.synth = new Tone.Synth().toDestination();
+        this.timer = new Timer(this.bpm, this.synth);
+        this.uiManager = new UIManager(this);
       }
 
       // BPMを更新する
