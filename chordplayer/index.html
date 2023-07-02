@@ -88,23 +88,23 @@
 
         // ボタンを生成するクラス
         class ButtonGenerator {
-          constructor(variations, keys, colors, chordDictionary, chordPlayer, container) {
+          constructor(variations, keys, colors, container) {
             this.variations = variations;
             this.keys = keys;
             this.colors = colors;
-            this.chordDictionary = chordDictionary;
-            this.chordPlayer = chordPlayer;
             this.container = container;
+            this.chordButtons = []; // ボタンの配列を追加
           }
 
           // ボタンを生成し、クリック時の処理を追加するメソッド
-          generateButtons() {
+          generateButtons(chordDictionary) {
             this.variations.forEach(variation => {
               this.keys.forEach((key, index) => {
                 const button = this.createButton(key, variation, index);
                 this.container.appendChild(button);
               });
             });
+            return this.chordButtons; // ボタンの配列を返す
           }
 
           // ボタンを生成するメソッド
@@ -113,10 +113,21 @@
             button.classList.add('grid-item');
             button.textContent = `${key} ${variation}`;
             button.style.backgroundColor = this.colors[index % this.colors.length];
-            button.addEventListener('click', () => {
-              const chord = this.chordDictionary.getChord(variation, key);
-              this.chordPlayer.playChord(chord);
-            });
+
+            // クリックイベントのハンドラを作成
+            const clickHandler = () => {
+              const chord = chordDictionary.getChord(variation, key);
+              // コードのイベントを発火して、押されたコードを渡す
+              const chordEvent = new CustomEvent('chordPressed', { detail: chord });
+              document.dispatchEvent(chordEvent);
+            };
+
+            // クリックイベントを追加
+            button.addEventListener('click', clickHandler);
+
+            // ボタンを配列に追加
+            this.chordButtons.push(button);
+
             return button;
           }
         }
@@ -132,11 +143,15 @@
           ['Major', 'Minor', '7', '6'],
           ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
           ['pink', 'peachpuff', 'palegoldenrod', 'palegreen', 'lightblue', 'plum', 'thistle'],
-          chordDictionary,
-          chordPlayer,
           document.querySelector('.grid-container')
         );
-        buttonGenerator.generateButtons();
+
+        // ボタンを生成し、押されたコードを受け取る
+        const chordButtons = buttonGenerator.generateButtons(chordDictionary);
+        document.addEventListener('chordPressed', event => {
+          const chord = event.detail;
+          chordPlayer.playChord(chord);
+        });
 
     </script>
 </body>
