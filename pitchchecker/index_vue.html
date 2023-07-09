@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Frequency Spectrum Display</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <canvas ref="spectrum" width="400" height="200"></canvas>
+        <div>{{ frequency }}</div>
+    </div>
+
+    <script>
+    new Vue({
+        el: "#app",
+        data: {
+            frequency: null,        // 周波数データを格納する変数
+            frameCount: 0,          // フレームカウントを初期化する変数
+            bufferLength: 1024,     // オーディオデータのバッファ長
+            dataArray: null,        // オーディオデータを格納する配列
+            context: null,          // オーディオコンテキスト
+            source: null,           // オーディオソースノード
+            analyser: null,         // オーディオ解析ノード
+            visualizer: null        // オーディオの可視化オブジェクト
+        },
+        mounted() {
+            this.initAudio();       // オーディオの初期化を行うメソッドの呼び出し
+            this.update();          // グラフの描画を更新するメソッドの呼び出し
+        },
+        methods: {
+            initAudio() {
+                const self = this;
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        self.context = new (window.AudioContext || window.webkitAudioContext)();
+                        self.source = self.context.createMediaStreamSource(stream);
+                        self.analyser = self.context.createAnalyser();
+                        self.analyser.fftSize = self.bufferLength;
+
+                        self.source.connect(self.analyser);
+
+                        const spectrumCanvas = self.$refs.spectrum;
+                        self.dataArray = new Uint8Array(self.bufferLength);
+
+                        self.visualizer = new AudioVisualizer(self.dataArray, spectrumCanvas);
+
+                        self.update();
+                    })
+                    .catch(err => {
+                        console.error('マイクへのアクセスが許可されていません。ブラウザの設定を確認して、マイクへのアクセスを許可してください。エラー詳細:', err);
+                    });
+            },
+            update() {
+                this.frameCount++;          // フレームカウントを増加させる
+                if (this.frameCount % 2 === 0) {
+                    this.analyser.getByteFrequencyData(this.dataArray);    // オーディオデータの周波数情報を取得
+
+                    const maxIndex = this.calculateVolume(this.dataArray, this.bufferLength).maxIndex;  // 最大音量のインデックスを取得
+                    this.frequency = Math.round(maxIndex * this.context.sampleRate / (2 * this.bufferLength)) + ' Hz';  // 最大音量の周波数を計算し、表示する
+
+                    this.visualizer.update();   // グラフの描画を更新する
+                }
+                requestAnimationFrame(this.update);    // 次のフレームでupdate()メソッドを呼び出す
+            },
+            calculateVolume(dataArray, bufferLength) {
+                let sum = 0;
+                let maxIndex = 0;
+                for(let i = 0; i < bufferLength; i++) {
+                    sum += dataArray[i] * dataArray[i];
+                    if(dataArray[i] > dataArray[maxIndex]) {
+                        maxIndex = i;
+                    }
+                }
+
+                const rms = Math.sqrt(sum / bufferLength);
+                return { volume: Math.min((rms / 255) * 200, 100), maxIndex: maxIndex };
+            }
+        }
+    });
+
+    class AudioVisualizer {
+        constructor(dataArray, canvas) {
+            this.dataArray = dataArray;
+            this.canvas = canvas;
+            this.context = this.canvas.getContext('2d');
+            this.bufferLength = this.dataArray.length;
+        }
+
+        update() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            for(let i = 0; i < this.bufferLength; i++) {
+                const x = Math.log(i + 1) / Math.log(this.bufferLength) * this.canvas.width;
+                this.context.fillStyle = `hsl(${i / this.bufferLength * 300}, 100%, 50%)`;
+                this.context.fillRect(x, this.canvas.height, (Math.log(i + 2) - Math.log(i + 1)) / Math.log(this.bufferLength) * this.canvas.width, -(this.dataArray[i] / 255) * this.canvas.height);
+            }
+        }
+    }
+    </script>
+</body>
+</html>
