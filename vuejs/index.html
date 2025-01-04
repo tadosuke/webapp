@@ -7,15 +7,19 @@
 </head>
 <body>
     <div id="app">
-        <dot-editor></dot-editor>
+        <!-- ここに子コンポーネントを追加 -->
+        <!-- <dot-editor></dot-editor> -->
+        <click-counter></click-counter>
     </div>
 
     <script type="module">
         import * as Vue from 'https://cdn.jsdelivr.net/npm/vue@3.2/dist/vue.esm-browser.js';
         import DotEditor from './components/dot-editor.js';
+        import ClickCounter from './components/click-counter.js';
 
         const app = Vue.createApp({});
         app.component('dot-editor', DotEditor);
+        app.component('click-counter', ClickCounter);
 
         app.mount('#app');
     </script>    
