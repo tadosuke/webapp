@@ -4,19 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vue.js</title>
-    <style>
-        canvas {
-          border: 1px solid #000; /* キャンバスの外枠 */
-          cursor: crosshair; /* マウスカーソルの形を変更 */
-        }
-        .controls {
-          margin: 10px; /* コントロールボタンの間隔 */
-        }
-      </style>    
 </head>
 <body>
     <div id="app">
-        <doteditor></doteditor>
+        <dot-editor></dot-editor>
     </div>
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -24,7 +15,7 @@
         import DotEditor from './components/doteditor.js';
 
         const app = Vue.createApp({});
-        app.component('doteditor', DotEditor);
+        app.component('dot-editor', DotEditor);
 
         app.mount('#app');
     </script>    
