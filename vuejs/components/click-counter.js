@@ -1,11 +1,8 @@
-/**
- * クリックするとカウントが増えるボタン
- */
 export default {
   name: "ClickCounter",
   data() {
     return {
-      count: 0,  // カウント
+      count: parseInt(localStorage.getItem('count') || '0', 10),  // ローカルストレージからカウントを読み込む
       buttonStyle: {
         backgroundColor: '#08c',  // 緑色の背景
         color: '#fff',  // 文字色
@@ -16,6 +13,12 @@ export default {
         cursor: 'pointer',  // カーソルをポインターに
       },  
     };
+  },
+  watch: {
+    count(newCount) {
+      // count が変更されるたびにローカルストレージを更新
+      localStorage.setItem('count', newCount);
+    }
   },
   template: `
     <div>
