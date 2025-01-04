@@ -87,7 +87,7 @@ export default {
     },
   
     template: `
-      <div class="numericslider" :style="numericsliderStyle">
+      <div :style="numericsliderStyle">
         <input
           type="number"
           :min="min"
@@ -96,7 +96,6 @@ export default {
           :value="currentValue"
           @input="updateValue"
           @blur="validateValue"
-          class="numericslider-number"
           :style="numberStyle"
         />
         <input
@@ -105,7 +104,6 @@ export default {
           :max="max"
           :step="step"
           v-model.number="currentValue"
-          class="numericslider-range"
           :style="rangeStyle"
         />
       </div>
