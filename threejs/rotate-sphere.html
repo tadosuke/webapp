@@ -31,10 +31,18 @@
 
     // イベントリスナーの設定
     function addEventListeners() {
+      // マウスイベント
       renderer.domElement.addEventListener('mousedown', handleMouseDown);
       renderer.domElement.addEventListener('mousemove', handleMouseMove);
       renderer.domElement.addEventListener('mouseup', handleMouseUp);
       renderer.domElement.addEventListener('mouseleave', handleMouseLeave);
+
+      // タッチイベント
+      renderer.domElement.addEventListener('touchstart', handleTouchStart);
+      renderer.domElement.addEventListener('touchmove', handleTouchMove);
+      renderer.domElement.addEventListener('touchend', handleTouchEnd);
+
+      // ウィンドウサイズ変更イベント
       window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -46,7 +54,7 @@
     function handleMouseDown(e) {
       isDragging = true;
       prevMouse = { x: e.clientX, y: e.clientY };
-      velocity = { x: 0, y: 0 }; // ドラッグ開始時に速度をリセット
+      velocity = { x: 0, y: 0 };
     }
 
     // マウス操作中の処理
@@ -55,8 +63,6 @@
       const deltaX = e.clientX - prevMouse.x;
       const deltaY = e.clientY - prevMouse.y;
       applyRotation(deltaX, deltaY);
-      
-      // マウスの移動速度を慣性速度に記録
       velocity = { x: deltaX * 0.5, y: deltaY * 0.5 };
       prevMouse = { x: e.clientX, y: e.clientY };
     }
@@ -64,7 +70,6 @@
     // マウスボタンを離した時の処理
     function handleMouseUp() {
       isDragging = false;
-      // マウスを離した時点での速度をそのまま使用
     }
 
     // マウスが画面外に出た場合の処理
@@ -72,15 +77,37 @@
       isDragging = false;
     }
 
+    // タッチ開始時の処理
+    function handleTouchStart(e) {
+      isDragging = true;
+      const touch = e.touches[0];
+      prevMouse = { x: touch.clientX, y: touch.clientY };
+      velocity = { x: 0, y: 0 };
+    }
+
+    // タッチ移動中の処理
+    function handleTouchMove(e) {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - prevMouse.x;
+      const deltaY = touch.clientY - prevMouse.y;
+      applyRotation(deltaX, deltaY);
+      velocity = { x: deltaX * 0.5, y: deltaY * 0.5 };
+      prevMouse = { x: touch.clientX, y: touch.clientY };
+    }
+
+    // タッチ終了時の処理
+    function handleTouchEnd() {
+      isDragging = false;
+    }
+
     // 球を生成する
     function createsphere() {
-      // テクスチャ
       const sphereTexture = new THREE.TextureLoader().load('./texture.jpg');
-      sphereTexture.wrapS = THREE.RepeatWrapping; // 水平方向の繰り返しを有効化
-      sphereTexture.wrapT = THREE.RepeatWrapping; // 垂直方向の繰り返しを有効化
-      sphereTexture.repeat.set(1, 1); // タイリング数 (x方向, y方向)      
+      sphereTexture.wrapS = THREE.RepeatWrapping;
+      sphereTexture.wrapT = THREE.RepeatWrapping;
+      sphereTexture.repeat.set(1, 1);
 
-      // メッシュ
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(1, 32, 32),
         new THREE.MeshStandardMaterial({ map: sphereTexture })
@@ -102,13 +129,11 @@
 
     // ライトのセットアップ
     function setupLights() {
-      // 環境ライトを追加
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // 色と強度
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
       scene.add(ambientLight);
 
-      // ディレクショナルライトを追加
       const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
-      directionalLight.position.set(5, 3, 5).normalize(); // ライトの位置を設定し、正規化
+      directionalLight.position.set(5, 3, 5).normalize();
       scene.add(directionalLight);
     }
 
@@ -117,12 +142,10 @@
       requestAnimationFrame(updateAnimation);
 
       if (!isDragging) {
-        // 慣性による回転を適用
         applyRotation(velocity.x, velocity.y);
         velocity.x *= friction;
         velocity.y *= friction;
 
-        // 慣性が小さくなったら停止
         if (Math.abs(velocity.x) < minVelocityThreshold) velocity.x = 0;
         if (Math.abs(velocity.y) < minVelocityThreshold) velocity.y = 0;
       }
