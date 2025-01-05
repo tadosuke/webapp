@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Three.js 地球儀</title>
+  <title>Three.js 球儀</title>
 </head>
 <body style="margin: 0; overflow: hidden;">
   <script type="module">
@@ -24,7 +24,7 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     
-    const earth = createEarth();
+    const sphere = createsphere();
     setupLights();
     addEventListeners();
     updateAnimation();
@@ -72,15 +72,15 @@
       isDragging = false;
     }
 
-    // 地球を生成する
-    function createEarth() {
-      const earthTexture = new THREE.TextureLoader().load('./earth_texture.jpg');
-      const earth = new THREE.Mesh(
+    // 球を生成する
+    function createsphere() {
+      const sphereTexture = new THREE.TextureLoader().load('./texture.jpg');
+      const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(1, 32, 32),
-        new THREE.MeshStandardMaterial({ map: earthTexture })
+        new THREE.MeshStandardMaterial({ map: sphereTexture })
       );
-      scene.add(earth);
-      return earth;
+      scene.add(sphere);
+      return sphere;
     }
 
     // 回転を適用する
@@ -91,7 +91,7 @@
       const qX = new THREE.Quaternion().setFromAxisAngle(xAxis, deltaY * 0.005);
       rotationQuaternion.multiplyQuaternions(qY, rotationQuaternion);
       rotationQuaternion.multiplyQuaternions(qX, rotationQuaternion);
-      earth.quaternion.copy(rotationQuaternion);
+      sphere.quaternion.copy(rotationQuaternion);
     }
 
     // ライトのセットアップ
