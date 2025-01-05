@@ -9,6 +9,14 @@
     <script type="module">
         import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js';
       
+        const rotationQuaternion = new THREE.Quaternion();
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let velocity = { x: 0, y: 0 };
+        const friction = 0.95;  // 摩擦係数
+        const minVelocityThreshold = 0.00001;  // 最小回転速度
+
+        // シーンを作成して DOM に追加
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 3;
@@ -16,22 +24,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
       
-        // 地球
         const earth = createEarth();
-      
-        // ライト
-        setupLights();
-      
-        const rotationQuaternion = new THREE.Quaternion();
-        let isDragging = false;
-        let prevMouse = { x: 0, y: 0 };
-        let velocity = { x: 0, y: 0 };
-        const friction = 0.995;
-        const minVelocityThreshold = 0.00001;
-
-        addEventListeners();
-    
-        // アニメーションの更新
+        setupLights();      
+        addEventListeners();    
         updateAnimation();
              
         // イベントリスナーの設定
@@ -77,7 +72,7 @@
             isDragging = false;
         }
 
-        // 地球を生成する関数
+        // 地球を生成する
         function createEarth() {
             const earthTexture = new THREE.TextureLoader().load('./earth_texture.jpg');
             const earth = new THREE.Mesh(
@@ -88,7 +83,7 @@
             return earth;
         }
     
-        // 回転を適用する関数
+        // 回転を適用する
         function applyRotation(deltaX, deltaY) {
             const xAxis = new THREE.Vector3(1, 0, 0);
             const yAxis = new THREE.Vector3(0, 1, 0);
