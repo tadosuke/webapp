@@ -31,32 +31,24 @@
         const friction = 0.995;
         const minVelocityThreshold = 0.00001;
 
+        addEventListeners();
+    
+        // アニメーションの更新
+        updateAnimation();
+             
         // イベントリスナーの設定
-        renderer.domElement.addEventListener('mousedown', handleMouseDown);
-        renderer.domElement.addEventListener('mousemove', handleMouseMove);
-        renderer.domElement.addEventListener('mouseup', handleMouseUp);
-        renderer.domElement.addEventListener('mouseleave', handleMouseLeave);
-    
-        // アニメーションのメイン処理
-        const animate = () => {
-            requestAnimationFrame(animate);
-    
-            if (!isDragging) {
-                // アニメーション更新関数を呼び出す
-                updateAnimation();
-            }
-    
-            renderer.render(scene, camera);
-        };
-    
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    
-        animate();
-                  
+        function addEventListeners(){
+            renderer.domElement.addEventListener('mousedown', handleMouseDown);
+            renderer.domElement.addEventListener('mousemove', handleMouseMove);
+            renderer.domElement.addEventListener('mouseup', handleMouseUp);
+            renderer.domElement.addEventListener('mouseleave', handleMouseLeave);
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }        
+
         // マウス操作開始時の処理
         function handleMouseDown(e) {
             isDragging = true;
@@ -118,18 +110,24 @@
             directionalLight.position.set(5, 3, 5).normalize(); // ライトの位置を設定し、正規化
             scene.add(directionalLight);
         }
+
+        // アニメーションの更新
+        function updateAnimation(){
+            requestAnimationFrame(updateAnimation);
     
-        // アニメーション更新
-        function updateAnimation() {
-            // 慣性による回転を適用
-            applyRotation(velocity.x, velocity.y);
-            velocity.x *= friction;
-            velocity.y *= friction;
+            if (!isDragging) {
+                // 慣性による回転を適用
+                applyRotation(velocity.x, velocity.y);
+                velocity.x *= friction;
+                velocity.y *= friction;
+        
+                // 慣性が小さくなったら停止
+                if (Math.abs(velocity.x) < minVelocityThreshold) velocity.x = 0;
+                if (Math.abs(velocity.y) < minVelocityThreshold) velocity.y = 0;
+            }
     
-            // 慣性が小さくなったら停止
-            if (Math.abs(velocity.x) < minVelocityThreshold) velocity.x = 0;
-            if (Math.abs(velocity.y) < minVelocityThreshold) velocity.y = 0;
-        }
+            renderer.render(scene, camera);
+        };
     </script>
     
 </body>
