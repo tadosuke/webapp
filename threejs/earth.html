@@ -23,8 +23,6 @@
         setupLights();
       
         const rotationQuaternion = new THREE.Quaternion();
-        const xAxis = new THREE.Vector3(1, 0, 0);
-        const yAxis = new THREE.Vector3(0, 1, 0);
         let isDragging = false;
         let prevMouse = { x: 0, y: 0 };
         let velocity = { x: 0, y: 0 };
@@ -92,6 +90,8 @@
     
         // 回転を適用する関数
         function applyRotation(deltaX, deltaY) {
+            const xAxis = new THREE.Vector3(1, 0, 0);
+            const yAxis = new THREE.Vector3(0, 1, 0);
             const qY = new THREE.Quaternion().setFromAxisAngle(yAxis, deltaX * 0.005);
             const qX = new THREE.Quaternion().setFromAxisAngle(xAxis, deltaY * 0.005);
             rotationQuaternion.multiplyQuaternions(qY, rotationQuaternion);
