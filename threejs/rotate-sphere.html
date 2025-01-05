@@ -8,82 +8,122 @@
 <body style="margin: 0; overflow: hidden;">
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js';
-
+  
+    // グローバル変数
     const rotationQuaternion = new THREE.Quaternion();
     let isDragging = false;
     let prevPointer = { x: 0, y: 0 };
     let velocity = { x: 0, y: 0 };
     const friction = 0.95;
     const minVelocityThreshold = 0.00001;
-
-    // シーンを作成して DOM に追加
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 2.5;
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const sphere = createsphere();
-    setupLights();
-    addEventListeners(renderer.domElement);
-    updateAnimation();
-
-    // イベントリスナーの設定
-    function addEventListeners(domElement) {
+  
+    // シーンとカメラとレンダラーの初期化
+    const { scene, camera, renderer } = initializeScene();
+    const sphere = createSphere();
+    setupLights(scene);
+    addEventListeners(renderer.domElement, camera, renderer);
+    startAnimation();
+  
+    /**
+     * シーン、カメラ、レンダラーの初期化
+     */
+    function initializeScene() {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 2.5;
+  
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+  
+      return { scene, camera, renderer };
+    }
+  
+    /**
+     * 球体の作成
+     */
+    function createSphere() {
+      const texture = new THREE.TextureLoader().load('./texture.jpg');
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(1, 1);
+  
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 32, 32),
+        new THREE.MeshStandardMaterial({ map: texture })
+      );
+      scene.add(sphere);
+      return sphere;
+    }
+  
+    /**
+     * ライトの設定
+     */
+    function setupLights(scene) {
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+      scene.add(ambientLight);
+  
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
+      directionalLight.position.set(5, 3, 5).normalize();
+      scene.add(directionalLight);
+    }
+  
+    /**
+     * イベントリスナーの追加
+     */
+    function addEventListeners(domElement, camera, renderer) {
       domElement.addEventListener('pointerdown', handlePointerDown);
       domElement.addEventListener('pointermove', handlePointerMove);
       domElement.addEventListener('pointerup', handlePointerUp);
       domElement.addEventListener('pointercancel', handlePointerUp);
       domElement.addEventListener('pointerleave', handlePointerUp);
-
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
+  
+      window.addEventListener('resize', () => handleResize(camera, renderer));
     }
-
-    // ポインタ操作開始時の処理
+  
+    /**
+     * ウィンドウリサイズ時の処理
+     */
+    function handleResize(camera, renderer) {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+  
+    /**
+     * ポインタダウン時の処理
+     */
     function handlePointerDown(e) {
       isDragging = true;
       prevPointer = { x: e.clientX, y: e.clientY };
       velocity = { x: 0, y: 0 };
       e.target.setPointerCapture(e.pointerId);
     }
-
-    // ポインタ移動中の処理
+  
+    /**
+     * ポインタムーブ時の処理
+     */
     function handlePointerMove(e) {
       if (!isDragging) return;
+  
       const deltaX = e.clientX - prevPointer.x;
       const deltaY = e.clientY - prevPointer.y;
       applyRotation(deltaX, deltaY);
       velocity = { x: deltaX * 0.5, y: deltaY * 0.5 };
       prevPointer = { x: e.clientX, y: e.clientY };
     }
-
-    // ポインタ操作終了時の処理
+  
+    /**
+     * ポインタアップ時の処理
+     */
     function handlePointerUp(e) {
       isDragging = false;
       e.target.releasePointerCapture(e.pointerId);
     }
-
-    // 球を生成する
-    function createsphere() {
-      const sphereTexture = new THREE.TextureLoader().load('./texture.jpg');
-      sphereTexture.wrapS = THREE.RepeatWrapping;
-      sphereTexture.wrapT = THREE.RepeatWrapping;
-      sphereTexture.repeat.set(1, 1);
-
-      const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 32, 32),
-        new THREE.MeshStandardMaterial({ map: sphereTexture })
-      );
-      scene.add(sphere);
-      return sphere;
-    }
-
-    // 回転を適用する
+  
+    /**
+     * 回転を適用する
+     */
     function applyRotation(deltaX, deltaY) {
       const xAxis = new THREE.Vector3(1, 0, 0);
       const yAxis = new THREE.Vector3(0, 1, 0);
@@ -93,32 +133,29 @@
       rotationQuaternion.multiplyQuaternions(qX, rotationQuaternion);
       sphere.quaternion.copy(rotationQuaternion);
     }
-
-    // ライトのセットアップ
-    function setupLights() {
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-      scene.add(ambientLight);
-
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
-      directionalLight.position.set(5, 3, 5).normalize();
-      scene.add(directionalLight);
-    }
-
-    // アニメーションの更新
-    function updateAnimation() {
-      requestAnimationFrame(updateAnimation);
-
-      if (!isDragging) {
-        applyRotation(velocity.x, velocity.y);
-        velocity.x *= friction;
-        velocity.y *= friction;
-
-        if (Math.abs(velocity.x) < minVelocityThreshold) velocity.x = 0;
-        if (Math.abs(velocity.y) < minVelocityThreshold) velocity.y = 0;
+  
+    /**
+     * アニメーションの開始
+     */
+    function startAnimation() {
+      function animate() {
+        requestAnimationFrame(animate);
+  
+        if (!isDragging) {
+          applyRotation(velocity.x, velocity.y);
+          velocity.x *= friction;
+          velocity.y *= friction;
+  
+          if (Math.abs(velocity.x) < minVelocityThreshold) velocity.x = 0;
+          if (Math.abs(velocity.y) < minVelocityThreshold) velocity.y = 0;
+        }
+  
+        renderer.render(scene, camera);
       }
-
-      renderer.render(scene, camera);
+  
+      animate();
     }
   </script>
+  
 </body>
 </html>
