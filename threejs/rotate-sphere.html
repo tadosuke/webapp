@@ -19,23 +19,23 @@
     // シーンを作成して DOM に追加
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 2;
+    camera.position.z = 2.5;
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
     const sphere = createsphere();
     setupLights();
-    addEventListeners();
+    addEventListeners(renderer.domElement);
     updateAnimation();
 
     // イベントリスナーの設定
-    function addEventListeners() {
-      renderer.domElement.addEventListener('pointerdown', handlePointerDown);
-      renderer.domElement.addEventListener('pointermove', handlePointerMove);
-      renderer.domElement.addEventListener('pointerup', handlePointerUp);
-      renderer.domElement.addEventListener('pointercancel', handlePointerUp);
-      renderer.domElement.addEventListener('pointerleave', handlePointerUp);
+    function addEventListeners(domElement) {
+      domElement.addEventListener('pointerdown', handlePointerDown);
+      domElement.addEventListener('pointermove', handlePointerMove);
+      domElement.addEventListener('pointerup', handlePointerUp);
+      domElement.addEventListener('pointercancel', handlePointerUp);
+      domElement.addEventListener('pointerleave', handlePointerUp);
 
       window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
