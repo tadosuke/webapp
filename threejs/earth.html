@@ -6,124 +6,123 @@
   <title>Three.js 地球儀</title>
 </head>
 <body style="margin: 0; overflow: hidden;">
-    <script type="module">
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js';
-      
-        const rotationQuaternion = new THREE.Quaternion();
-        let isDragging = false;
-        let prevMouse = { x: 0, y: 0 };
-        let velocity = { x: 0, y: 0 };
-        const friction = 0.95;  // 摩擦係数
-        const minVelocityThreshold = 0.00001;  // 最小回転速度
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js';
+    
+    const rotationQuaternion = new THREE.Quaternion();
+    let isDragging = false;
+    let prevMouse = { x: 0, y: 0 };
+    let velocity = { x: 0, y: 0 };
+    const friction = 0.95; // 摩擦係数
+    const minVelocityThreshold = 0.00001; // 最小回転速度
 
-        // シーンを作成して DOM に追加
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 3;
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+    // シーンを作成して DOM に追加
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 3;
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    
+    const earth = createEarth();
+    setupLights();
+    addEventListeners();
+    updateAnimation();
+
+    // イベントリスナーの設定
+    function addEventListeners() {
+      renderer.domElement.addEventListener('mousedown', handleMouseDown);
+      renderer.domElement.addEventListener('mousemove', handleMouseMove);
+      renderer.domElement.addEventListener('mouseup', handleMouseUp);
+      renderer.domElement.addEventListener('mouseleave', handleMouseLeave);
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+      });
+    }
+
+    // マウス操作開始時の処理
+    function handleMouseDown(e) {
+      isDragging = true;
+      prevMouse = { x: e.clientX, y: e.clientY };
+      velocity = { x: 0, y: 0 }; // ドラッグ開始時に速度をリセット
+    }
+
+    // マウス操作中の処理
+    function handleMouseMove(e) {
+      if (!isDragging) return;
+      const deltaX = e.clientX - prevMouse.x;
+      const deltaY = e.clientY - prevMouse.y;
+      applyRotation(deltaX, deltaY);
       
-        const earth = createEarth();
-        setupLights();      
-        addEventListeners();    
-        updateAnimation();
-             
-        // イベントリスナーの設定
-        function addEventListeners(){
-            renderer.domElement.addEventListener('mousedown', handleMouseDown);
-            renderer.domElement.addEventListener('mousemove', handleMouseMove);
-            renderer.domElement.addEventListener('mouseup', handleMouseUp);
-            renderer.domElement.addEventListener('mouseleave', handleMouseLeave);
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }        
+      // マウスの移動速度を慣性速度に記録
+      velocity = { x: deltaX * 0.5, y: deltaY * 0.5 };
+      prevMouse = { x: e.clientX, y: e.clientY };
+    }
 
-        // マウス操作開始時の処理
-        function handleMouseDown(e) {
-            isDragging = true;
-            prevMouse = { x: e.clientX, y: e.clientY };
-            velocity = { x: 0, y: 0 }; // ドラッグ開始時に速度をリセット
-        }
-    
-        // マウス操作中の処理
-        function handleMouseMove(e) {
-            if (!isDragging) return;
-            const deltaX = e.clientX - prevMouse.x;
-            const deltaY = e.clientY - prevMouse.y;
-            applyRotation(deltaX, deltaY);
-    
-            // マウスの移動速度を慣性速度に記録
-            velocity = { x: deltaX * 0.5, y: deltaY * 0.5 };
-            prevMouse = { x: e.clientX, y: e.clientY };
-        }
-    
-        // マウスボタンを離した時の処理
-        function handleMouseUp() {
-            isDragging = false;
-            // マウスを離した時点での速度をそのまま使用
-        }
-    
-        // マウスが画面外に出た場合の処理
-        function handleMouseLeave() {
-            isDragging = false;
-        }
+    // マウスボタンを離した時の処理
+    function handleMouseUp() {
+      isDragging = false;
+      // マウスを離した時点での速度をそのまま使用
+    }
 
-        // 地球を生成する
-        function createEarth() {
-            const earthTexture = new THREE.TextureLoader().load('./earth_texture.jpg');
-            const earth = new THREE.Mesh(
-                new THREE.SphereGeometry(1, 32, 32),
-                new THREE.MeshStandardMaterial({ map: earthTexture })
-            );
-            scene.add(earth);
-            return earth;
-        }
-    
-        // 回転を適用する
-        function applyRotation(deltaX, deltaY) {
-            const xAxis = new THREE.Vector3(1, 0, 0);
-            const yAxis = new THREE.Vector3(0, 1, 0);
-            const qY = new THREE.Quaternion().setFromAxisAngle(yAxis, deltaX * 0.005);
-            const qX = new THREE.Quaternion().setFromAxisAngle(xAxis, deltaY * 0.005);
-            rotationQuaternion.multiplyQuaternions(qY, rotationQuaternion);
-            rotationQuaternion.multiplyQuaternions(qX, rotationQuaternion);
-            earth.quaternion.copy(rotationQuaternion);
-        }
-    
-        // ライトのセットアップ
-        function setupLights() {
-            // 環境ライトを追加
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // 色と強度
-            scene.add(ambientLight);
-    
-            // ディレクショナルライトを追加
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
-            directionalLight.position.set(5, 3, 5).normalize(); // ライトの位置を設定し、正規化
-            scene.add(directionalLight);
-        }
+    // マウスが画面外に出た場合の処理
+    function handleMouseLeave() {
+      isDragging = false;
+    }
 
-        // アニメーションの更新
-        function updateAnimation(){
-            requestAnimationFrame(updateAnimation);
-    
-            if (!isDragging) {
-                // 慣性による回転を適用
-                applyRotation(velocity.x, velocity.y);
-                velocity.x *= friction;
-                velocity.y *= friction;
-        
-                // 慣性が小さくなったら停止
-                if (Math.abs(velocity.x) < minVelocityThreshold) velocity.x = 0;
-                if (Math.abs(velocity.y) < minVelocityThreshold) velocity.y = 0;
-            }
-    
-            renderer.render(scene, camera);
-        };
-    </script>
-    
+    // 地球を生成する
+    function createEarth() {
+      const earthTexture = new THREE.TextureLoader().load('./earth_texture.jpg');
+      const earth = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 32, 32),
+        new THREE.MeshStandardMaterial({ map: earthTexture })
+      );
+      scene.add(earth);
+      return earth;
+    }
+
+    // 回転を適用する
+    function applyRotation(deltaX, deltaY) {
+      const xAxis = new THREE.Vector3(1, 0, 0);
+      const yAxis = new THREE.Vector3(0, 1, 0);
+      const qY = new THREE.Quaternion().setFromAxisAngle(yAxis, deltaX * 0.005);
+      const qX = new THREE.Quaternion().setFromAxisAngle(xAxis, deltaY * 0.005);
+      rotationQuaternion.multiplyQuaternions(qY, rotationQuaternion);
+      rotationQuaternion.multiplyQuaternions(qX, rotationQuaternion);
+      earth.quaternion.copy(rotationQuaternion);
+    }
+
+    // ライトのセットアップ
+    function setupLights() {
+      // 環境ライトを追加
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // 色と強度
+      scene.add(ambientLight);
+
+      // ディレクショナルライトを追加
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
+      directionalLight.position.set(5, 3, 5).normalize(); // ライトの位置を設定し、正規化
+      scene.add(directionalLight);
+    }
+
+    // アニメーションの更新
+    function updateAnimation() {
+      requestAnimationFrame(updateAnimation);
+
+      if (!isDragging) {
+        // 慣性による回転を適用
+        applyRotation(velocity.x, velocity.y);
+        velocity.x *= friction;
+        velocity.y *= friction;
+
+        // 慣性が小さくなったら停止
+        if (Math.abs(velocity.x) < minVelocityThreshold) velocity.x = 0;
+        if (Math.abs(velocity.y) < minVelocityThreshold) velocity.y = 0;
+      }
+
+      renderer.render(scene, camera);
+    }
+  </script>
 </body>
 </html>
