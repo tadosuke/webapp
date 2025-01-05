@@ -74,7 +74,13 @@
 
     // 球を生成する
     function createsphere() {
+      // テクスチャ
       const sphereTexture = new THREE.TextureLoader().load('./texture.jpg');
+      sphereTexture.wrapS = THREE.RepeatWrapping; // 水平方向の繰り返しを有効化
+      sphereTexture.wrapT = THREE.RepeatWrapping; // 垂直方向の繰り返しを有効化
+      sphereTexture.repeat.set(1, 1); // タイリング数 (x方向, y方向)      
+
+      // メッシュ
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(1, 32, 32),
         new THREE.MeshStandardMaterial({ map: sphereTexture })
